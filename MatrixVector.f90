@@ -4,6 +4,8 @@ module MatrixVector
 
 	implicit none
 
+	include 'fftw3.f'
+
 contains
 
 	function multiplyD(x,dx) result(y)						!Derivative with periodic BC
@@ -85,6 +87,41 @@ contains
 				exit
 			end if
 		end do
+	end subroutine
+
+	subroutine DSTPoisson_setup(N,L,W)
+		integer, intent(in) :: N
+		real(mp), intent(in) :: L
+		complex(mp), intent(out) :: W(N)
+		integer :: k
+		complex(mp) :: wx
+
+		wx = pi*eye/L
+		do k=1,N
+			W(k) = (wx*(k-0.5_mp))**2
+		end do
+	end subroutine
+
+	subroutine DSTPoisson(x,rhs,W)
+		real(mp), intent(in) :: rhs(:)
+		complex(mp), intent(in) :: W(:)
+		real(mp), intent(out) :: x(size(rhs))
+		real(mp) :: rhsFFT(size(rhs)), xFFT(size(rhs))
+		integer(mp) :: plan
+		integer :: N
+		N = size(rhs)
+
+		call dfftw_plan_r2r_1d(plan,N,rhs,rhsFFT,FFTW_RODFT11,FFTW_ESTIMATE)
+		call dfftw_execute_r2r(plan,rhs,rhsFFT)
+		call dfftw_destroy_plan(plan)
+
+		xFFT = rhsFFT/REALPART(W)
+
+		call dfftw_plan_r2r_1d(plan,N,xFFT,x,FFTW_RODFT11,FFTW_ESTIMATE)
+		call dfftw_execute_r2r(plan,xFFT,x)
+		call dfftw_destroy_plan(plan)
+
+		x = x/2/N
 	end subroutine
 
 end module

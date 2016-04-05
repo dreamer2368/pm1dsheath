@@ -1,13 +1,13 @@
 ### Compilers & flags
 F90=gfortran
 
-FFTWLIBS=
+FFTWLIBS=~/bin/FFTW/lib/libfftw3.a
 VECLIBSMACOSX=
 LAPACKLIB=-L/opt/local/lib/lapack-3.5.0 -llapack -lblas
 BLASLIB=/opt/local/lib/lapack-3.5.0/librefblas.a
 PNETCDFLIBS=
 
-LIBS    = $(LAPACKLIB)
+LIBS    = $(LAPACKLIB) $(FFTWLIBS)
 
 
 EXE = exec

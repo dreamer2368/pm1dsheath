@@ -11,6 +11,8 @@ module modMesh
 		real(mp), allocatable :: E(:)
 		real(mp), allocatable :: rho(:)
 		real(mp), allocatable :: phi(:)
+
+		complex(mp), allocatable :: W(:)
 	end type
 
 contains
@@ -28,6 +30,10 @@ contains
 		allocate(this%E(ng))
 		allocate(this%phi(ng))
 		allocate(this%rho(ng))
+
+		allocate(this%W(ng))
+
+		call DSTPoisson_setup(this%ng,this%L,this%W)
 	end subroutine
 
 	subroutine setMesh(this,rho_back)
@@ -43,6 +49,7 @@ contains
 		deallocate(this%E)
 		deallocate(this%rho)
 		deallocate(this%phi)
+		deallocate(this%W)
 	end subroutine
 
 end module

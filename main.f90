@@ -8,21 +8,9 @@ program main
 	! print to screen
 	print *, 'calling program main'
 
-	call testforward(64,10000,0.2_mp,20.0_mp,60.0_mp)
+!	call testforward(64,10000,0.2_mp,20.0_mp,60.0_mp)
+	call test_DST
 
-!	call setup					!A,B and QOI are initialized here
-!	B = B0 + B0*EXP(-12.0_mp)
-!	call particle_initialize
-!	call forwardsweep(langmuir)
-
-!	fDA = (/ ( 9.0_mp-i, i=1,30) /)
-!	fDA = EXP(fDA)
-!	print *, fDA
-!	call error(fDA(18),e)
-!	call errorConvergence(fDA,ek)
-!	call partialTimeInterval(fDA,e)
-!	call energyHistory(langmuir)
-!	call Jchaos(Bdata)
 	! print to screen
 	print *, 'program main...done.'
 
@@ -45,6 +33,23 @@ contains
 		call printPlasma(twostream%r)
 
 		call destroyPM1D(twostream)
+	end subroutine
+
+	subroutine test_DST
+		type(mesh) :: this
+		integer, parameter :: Ng = 64
+		real(mp) :: L = 2.0_mp, rhs(Ng)
+
+		call buildMesh(this,L,Ng)
+
+		rhs = 1.0_mp
+		call DSTPoisson(this%phi,rhs,this%W)
+
+		open(unit=301,file='data/phi.bin',status='replace',form='unformatted',access='stream')
+		write(301) this%phi
+		close(301)
+
+		call destroyMesh(this)
 	end subroutine
 
 end program
