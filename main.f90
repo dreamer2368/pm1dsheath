@@ -8,8 +8,8 @@ program main
 	! print to screen
 	print *, 'calling program main'
 
-!	call testforward(64,10000,0.2_mp,20.0_mp,60.0_mp)
-	call test_DST
+	call testforward(64,10000,1,0.2_mp,20.0_mp,60.0_mp)
+!	call test_DST
 
 	! print to screen
 	print *, 'program main...done.'
@@ -18,13 +18,13 @@ contains
 
 	! You can add custom subroutines/functions here later, if you want
 
-	subroutine testforward(Ng,N,dt,Ti,Tf)
+	subroutine testforward(Ng,N,order,dt,Ti,Tf)
 		type(PM1D) :: twostream
-		integer, intent(in) :: Ng, N
+		integer, intent(in) :: Ng, N, order
 		real(mp), intent(in) :: dt,Ti,Tf
 		real(mp) :: xp0(N), vp0(N), qs(N), ms(N), rho_back
 
-		call buildPM1D(twostream,Tf,Ti,Ng,N,dir='test')
+		call buildPM1D(twostream,Tf,Ti,Ng,N,order,dir='test')
 
 		call particle_initialize(twostream,0.2_mp,0.0_mp,1,xp0,vp0,qs,ms,rho_back)
 

@@ -20,10 +20,10 @@ module modPM1D
 
 contains
 
-	subroutine buildPM1D(this,Tf,Ti,Ng,N,dt,L,A,B,dir)
+	subroutine buildPM1D(this,Tf,Ti,Ng,N,order,dt,L,A,B,dir)
 		type(PM1D), intent(out) :: this
 		real(mp), intent(in) :: Tf,Ti
-		integer, intent(in) :: Ng, N
+		integer, intent(in) :: Ng, N, order
 		real(mp), intent(in), optional :: dt, A, B, L
 		character(len=*), intent(in), optional :: dir
 		if( present(dt) ) then
@@ -61,7 +61,7 @@ contains
 		this%wp = 1.0_mp
 		call buildPlasma(this%p,N)
 		call buildMesh(this%m,this%L,Ng)
-		call buildAssign(this%a,N,Ng)
+		call buildAssign(this%a,N,Ng,order)
 		if( present(dir) ) then
 			call buildRecord(this%r,this%nt,this%n,this%L,this%ng,dir)
 		else

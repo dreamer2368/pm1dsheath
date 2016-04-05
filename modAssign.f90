@@ -8,6 +8,7 @@ module modAssign
 	type pmAssign
 		integer :: n
 		integer :: ng
+		integer :: order
 
 		integer, allocatable :: g(:,:)
 		real(mp), allocatable :: frac(:,:)
@@ -16,16 +17,16 @@ module modAssign
 
 contains
 
-	subroutine buildAssign(this,n,ng)
+	subroutine buildAssign(this,n,ng,order)
 		type(pmAssign), intent(out) :: this
-		integer, intent(in) :: n
-		integer, intent(in) :: ng
+		integer, intent(in) :: n, ng, order
 
 		this%n = n
 		this%ng = ng
+		this%order = order
 
-		allocate(this%g(n,3))
-		allocate(this%frac(n,3))
+		allocate(this%g(n,order+1))
+		allocate(this%frac(n,order+1))
 		allocate(this%h(n))
 	end subroutine
 
@@ -37,7 +38,64 @@ contains
 		deallocate(this%h)
 	end subroutine
 
-	subroutine assignMatrix(this,m,xp)	!apply BC and create assignment matrix
+	subroutine assignMatrix(this,m,xp)
+		type(pmAssign), intent(inout) :: this
+		type(mesh), intent(inout) :: m
+		real(mp), intent(inout) :: xp(this%n)
+
+		SELECT CASE(this%order)
+			CASE(1)
+				call assign_CIC(this,m,xp)
+			CASE(2)
+				call assign_TSC(this,m,xp)
+		END SELECT
+	end subroutine
+
+	subroutine assign_CIC(this,m,xp)	!apply BC and create assignment matrix
+		type(pmAssign), intent(inout) :: this
+		type(mesh), intent(inout) :: m
+		real(mp), intent(inout) :: xp(this%n)
+		integer :: i
+		integer :: g1, gl, gr
+		real(mp) :: fracl, fracr		!fraction for left grid point
+		real(mp) :: h
+
+		!apply BC
+		do i=1,this%n
+			if( xp(i)<0 ) then
+				xp(i) = xp(i) + m%L
+			elseif( xp(i)>=m%L ) then
+				xp(i) = xp(i) - m%L
+			end if
+		end do
+
+		!assignment matrix
+		do i=1,this%n
+			g1 = FLOOR(xp(i)/m%dx - 0.5_mp)+1
+			gl = g1
+			gr = gl+1
+			if (gl<1) then
+				gl = gl + this%ng
+			elseif (gl>this%ng) then
+				gl = gl - this%ng
+			end if
+			if (gr<1) then
+				gr = gr + this%ng
+			elseif (gr>this%ng) then
+				gr = gr - this%ng
+			end if
+
+			h = xp(i)/m%dx - g1 + 0.5_mp
+			fracl = 1.0_mp - ABS(h)
+			fracr = 1.0_mp - fracl
+
+			this%h(i) = h
+			this%g(i,:) = (/ gl, gr /)
+			this%frac(i,:) = (/ fracl, fracr /)
+		end do
+	end subroutine
+
+	subroutine assign_TSC(this,m,xp)	!apply BC and create assignment matrix
 		type(pmAssign), intent(inout) :: this
 		type(mesh), intent(inout) :: m
 		real(mp), intent(inout) :: xp(this%n)
@@ -106,7 +164,7 @@ contains
 
 		m%rho = 0.0_mp
 		do i=1,this%n
-			m%rho( this%g(i,:) ) = m%rho( this%g(i,:) ) + p%qs/m%dx*this%frac(i,:)
+			m%rho( this%g(i,:) ) = m%rho( this%g(i,:) ) + p%qs(i)/m%dx*this%frac(i,:)
 		end do
 		m%rho = m%rho + m%rho_back
 	end subroutine
