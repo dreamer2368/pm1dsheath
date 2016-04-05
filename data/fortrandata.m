@@ -4,7 +4,7 @@ clc
 
 xp = importdata('xp.out');  xp = xp';
 vp = importdata('vp.out');  vp = vp';
-% E = importdata('E.out');    E = E';
+E = importdata('E.out');    E = E';
 % fDA = importdata('fDA.out');
 % ek = importdata('ek.out');
 

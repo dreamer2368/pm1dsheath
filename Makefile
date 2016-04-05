@@ -11,8 +11,8 @@ LIBS    = $(LAPACKLIB)
 
 
 EXE = exec
-F90SRC = main.f90 random.f90 declaration.f90 init.f90 modPlasma.f90 timeStep.f90 assignFunctions.f90 convergence.f90 MatrixVector.f90
-F90OBJ = main.o random.o declaration.o init.o modPlasma.o timeStep.o assignFunctions.o convergence.o MatrixVector.o
+F90SRC = main.f90 constants.f90 MatrixVector.f90 modPlasma.f90 modMesh.f90 modAssign.f90 modRecord.f90 modPM1D.f90 random.f90 init.f90 modSource.f90 timeStep.f90
+F90OBJ = main.o constants.o MatrixVector.o modPlasma.o modMesh.o modAssign.o modRecord.o modPM1D.o random.o init.o modSource.o timeStep.o
 
 ### Targets
 all: $(EXE)
@@ -28,12 +28,16 @@ $(EXE): $(F90OBJ)
 	$(F90) -c $<
 
 # Dependencies
-main.o: convergence.o
-declaration.o : modPlasma.o
-init.o: declaration.o random.o
-timeStep.o : declaration.o assignFunctions.o MatrixVector.o
-assignFunctions.o : declaration.o
-convergence.o : declaration.o init.o modPlasma.o timeStep.o
+MatrixVector.o : constants.o
+modPlasma.o : constants.o
+modMesh.o : MatrixVector.o
+modAssign.o : modPlasma.o modMesh.o
+modRecord.o : modPlasma.o modMesh.o
+modPM1D.o : modPlasma.o modMesh.o modAssign.o modRecord.o
+init.o : modPM1D.o random.o
+modSource.o : modPM1D.o
+timeStep.o : modSource.o
+main.o : init.o timeStep.o
 
 clean:
 	rm *.o *.mod $(EXE)

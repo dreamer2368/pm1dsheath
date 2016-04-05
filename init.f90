@@ -1,26 +1,10 @@
 module init
 
-	use declaration
+	use modPM1D
 	use random
 	implicit none
 
 contains
-
-	subroutine setup()
-		!reference perturbation amplitude
-		A = A0
-		B = B0
-		!time step parameter
-		dt = 0.2_mp
-		Nt = CEILING(T/dt)
-		dt = T/Nt
-		Ni = FLOOR(Ti/dt) + 1
-		print *, 'Ni=',Ni,', Nt=',Nt,', dt=',dt
-
-		!Grid setup
-		dx = L/Ng
-		xg = (/ ( i*L/Ng, i=0,Ng-1 ) /)
-	end subroutine
 
 	function randn(N) result(x)
 		integer, intent(in) :: N
@@ -28,21 +12,32 @@ contains
 		integer :: i
 
 		do i = 1,N
-			x(i) = SQRT(-2.0_mp*LOG(RAND()))*COS(2.0_mp*pi*RAND())
+			x(i) = random_normal()
 		end do
 	end function
 
-	subroutine particle_initialize()
+	subroutine particle_initialize(this,v0,vT,mode,xp0,vp0,qs,ms,rho_back)		!generate initial distribution
+		type(PM1D), intent(inout) :: this
+		integer, intent(in) :: mode
+		real(mp), intent(in) :: v0, vT
+		real(mp), intent(out) :: xp0(this%n), vp0(this%n), qs(this%n),ms(this%n),rho_back
+		real(mp) :: L,qe,me
+		integer :: i,N,pm(this%n)
+		L = this%L
+		N = this%n
+
+		qe = -this%wp*this%wp/(this%n/L)
+		qs = qe
+		me = -qe
+		ms = me
+		rho_back = -qe*this%n/L
+
 		!spatial distribution initialize
 		xp0 = (/ ( i*L/N, i=0,N-1 ) /)
-!		xp0 = xp0 + A*L/N*SIN( 2.0_mp*pi*xp0/L*mode )
-		xp0 = xp0 - A*L/N*0.3_mp*( SIN( 2.0_mp*pi*xp0/L*mode )	&
-									+ SIN( 4.0_mp*pi*xp0/L*mode )	&
-									+ SIN( 6.0_mp*pi*xp0/L*mode ) )
+		xp0 = xp0 + this%A0*L/this%n*SIN( 2.0_mp*pi*xp0/L*mode )
 
 		!velocity distribution initialize
-!		vp0 = vT*randn(N)
-		vp0 = 0.0_mp
+		vp0 = vT*randn(N)
 		pm = (/ ( i, i=1,N ) /)
 		pm = 1 - 2*MOD(pm,2)
 		vp0 = vp0 + pm*v0

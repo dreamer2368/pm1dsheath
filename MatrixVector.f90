@@ -1,6 +1,6 @@
 module MatrixVector
 
-	use modPlasma										!machine precision mp should be assigned
+	use constants
 
 	implicit none
 

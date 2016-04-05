@@ -1,2 +1,2 @@
-# 1d_pm_adj_f90
-fortran 90 code for adjoint of 1D particle-mesh
+# 1d_pm_f90_sheath
+fortran 90 code for PM 1D sheath
