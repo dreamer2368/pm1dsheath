@@ -24,7 +24,7 @@ contains
 		real(mp), intent(in) :: dt,Ti,Tf
 		real(mp) :: xp0(N), vp0(N), qs(N), ms(N), rho_back
 
-		call buildPM1D(twostream,Tf,Ti,Ng,N,order,dir='test')
+		call buildPM1D(twostream,Tf,Ti,Ng,N,0,order,dir='test')
 
 		call particle_initialize(twostream,0.2_mp,0.0_mp,1,xp0,vp0,qs,ms,rho_back)
 

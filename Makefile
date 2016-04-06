@@ -11,8 +11,8 @@ LIBS    = $(LAPACKLIB) $(FFTWLIBS)
 
 
 EXE = exec
-F90SRC = main.f90 constants.f90 MatrixVector.f90 modPlasma.f90 modMesh.f90 modAssign.f90 modRecord.f90 modPM1D.f90 random.f90 init.f90 modSource.f90 timeStep.f90
-F90OBJ = main.o constants.o MatrixVector.o modPlasma.o modMesh.o modAssign.o modRecord.o modPM1D.o random.o init.o modSource.o timeStep.o
+F90SRC = main.f90 constants.f90 MatrixVector.f90 modPlasma.f90 modMesh.f90 modAssign.f90 modRecord.f90 modPM1D.f90 random.f90 init.f90 modBC.f90 modSource.f90 timeStep.f90
+F90OBJ = main.o constants.o MatrixVector.o modPlasma.o modMesh.o modAssign.o modRecord.o modPM1D.o random.o init.o modBC.o modSource.o timeStep.o
 
 ### Targets
 all: $(EXE)
@@ -35,8 +35,9 @@ modAssign.o : modPlasma.o modMesh.o
 modRecord.o : modPlasma.o modMesh.o
 modPM1D.o : modPlasma.o modMesh.o modAssign.o modRecord.o
 init.o : modPM1D.o random.o
+modBC.o : modPM1D.o
 modSource.o : modPM1D.o
-timeStep.o : modSource.o
+timeStep.o : modSource.o modBC.o
 main.o : init.o timeStep.o
 
 clean:

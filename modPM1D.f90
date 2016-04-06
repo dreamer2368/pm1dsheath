@@ -8,7 +8,7 @@ module modPM1D
 	implicit none
 
 	type PM1D
-		integer :: nt, ni, n, ng
+		integer :: nt, ni, n, ng, BCindex
 		real(mp) :: L, eps0, wp
 		real(mp) :: dt, A0, B0
 
@@ -20,10 +20,10 @@ module modPM1D
 
 contains
 
-	subroutine buildPM1D(this,Tf,Ti,Ng,N,order,dt,L,A,B,dir)
+	subroutine buildPM1D(this,Tf,Ti,Ng,N,BC,order,dt,L,A,B,dir)
 		type(PM1D), intent(out) :: this
 		real(mp), intent(in) :: Tf,Ti
-		integer, intent(in) :: Ng, N, order
+		integer, intent(in) :: Ng, N, BC, order
 		real(mp), intent(in), optional :: dt, A, B, L
 		character(len=*), intent(in), optional :: dir
 		if( present(dt) ) then
@@ -48,13 +48,15 @@ contains
 		end if
 		this%ng = Ng
 		this%n = N
+		this%BCindex = BC
 		this%nt = CEILING(Tf/this%dt)
 		this%dt = Tf/this%nt
 		this%ni = FLOOR(Ti/this%dt) + 1
 		print *, 'Plasma is created'
 		print *, 'L = (',this%L,')'
-		print *, 'Ng = (',Ng,')'
-		print *, 'N = ',N,', A = ',this%A0
+		print *, 'Ng = (',Ng,'), N = ',N
+		print *, 'BC : ', this%BCindex
+		print *, 'A = ',this%A0
 		print *, 'Ni = ',this%ni,', Nt = ',this%nt,', dt = ',this%dt
 
 		this%eps0 = 1.0_mp

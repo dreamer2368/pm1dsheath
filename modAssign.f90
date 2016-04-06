@@ -60,30 +60,11 @@ contains
 		real(mp) :: fracl, fracr		!fraction for left grid point
 		real(mp) :: h
 
-		!apply BC
-		do i=1,this%n
-			if( xp(i)<0 ) then
-				xp(i) = xp(i) + m%L
-			elseif( xp(i)>=m%L ) then
-				xp(i) = xp(i) - m%L
-			end if
-		end do
-
 		!assignment matrix
 		do i=1,this%n
 			g1 = FLOOR(xp(i)/m%dx - 0.5_mp)+1
 			gl = g1
 			gr = gl+1
-			if (gl<1) then
-				gl = gl + this%ng
-			elseif (gl>this%ng) then
-				gl = gl - this%ng
-			end if
-			if (gr<1) then
-				gr = gr + this%ng
-			elseif (gr>this%ng) then
-				gr = gr - this%ng
-			end if
 
 			h = xp(i)/m%dx - g1 + 0.5_mp
 			fracl = 1.0_mp - ABS(h)
@@ -108,43 +89,12 @@ contains
 		real(mp) :: fracr		!fraction for right grid point
 		real(mp) :: h			!distance from nearest grid point
 
-		!apply BC
-		do i=1,this%n
-			if( xp(i)<0 ) then
-				xp(i) = xp(i) + m%L
-			elseif( xp(i)>=m%L ) then
-				xp(i) = xp(i) - m%L
-			end if
-		end do
-
-		if( MINVAL(xp)<0 .or. MAXVAL(xp)>m%L ) then
-			print *, MINVAL(xp), MAXVAL(xp)
-			print *, 'Boundary handling is failed. particle is way outside BC. stopped time stepping.'
-			stop
-		end if
-
 		!assignment matrix
 		do i=1,this%n
 			g = FLOOR(xp(i)/m%dx + 0.5_mp)+1
 			gl = g-1
 			gr = g+1
 			h = xp(i)/m%dx - g + 1.0_mp
-
-			if (g<1) then
-				g = g + this%ng
-			elseif (g>this%ng) then
-				g = g - this%ng
-			end if
-			if (gl<1) then
-				gl = gl + this%ng
-			elseif (gl>this%ng) then
-				gl = gl - this%ng
-			end if
-			if (gr<1) then
-				gr = gr + this%ng
-			elseif (gr>this%ng) then
-				gr = gr - this%ng
-			end if
 
 			frac0 = 0.75_mp - h*h
 			fracl = 0.5_mp*(0.5_mp-h)*(0.5_mp-h)

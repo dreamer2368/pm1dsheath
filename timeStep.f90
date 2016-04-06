@@ -1,6 +1,7 @@
 module timeStep
 
 	use modSource
+	use modBC
 
 	implicit none
 
@@ -43,7 +44,9 @@ contains
 		N = this%N
 		Ng = this%ng
 
+		call applyBC(this)
 		call assignMatrix(this%a,this%m,this%p%xp)
+		call adjustGrid(this)
 
 		!charge assignment
 		call chargeAssign(this%a,this%p,this%m)
@@ -91,7 +94,9 @@ contains
 		call source(this,k,'xp')
 		this%p%xp = this%p%xp + dt*this%p%vp
 
+		call applyBC(this)
 		call assignMatrix(this%a,this%m,this%p%xp)
+		call adjustGrid(this)
 
 		!charge assignment
 		call chargeAssign(this%a,this%p,this%m)
