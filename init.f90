@@ -44,7 +44,7 @@ contains
 			call buildSpecies(this%p(i),qs,ms)
 			call setSpecies(this%p(i),Np,xp0,vp0)
 		end do
-		call setMesh(this%m,rho_back)
+		call setMesh(this%m,rho_back*(/ ( 1, i=1,this%m%ng) /))
 	end subroutine
 
 end module

@@ -6,10 +6,11 @@ module modMesh
 
 	type mesh
 		integer :: ng
-		real(mp) :: L, dx, rho_back
+		real(mp) :: L, dx
 
 		real(mp), allocatable :: E(:)
 		real(mp), allocatable :: rho(:)
+		real(mp), allocatable :: rho_back(:)
 		real(mp), allocatable :: phi(:)
 
 		complex(mp), allocatable :: W(:)
@@ -25,11 +26,12 @@ contains
 		this%L = L
 		this%ng = ng
 		this%dx = L/ng
-		this%rho_back = 0.0_mp
 
 		allocate(this%E(ng))
 		allocate(this%phi(ng))
 		allocate(this%rho(ng))
+		allocate(this%rho_back(ng))
+		this%rho_back = 0.0_mp
 
 		allocate(this%W(ng))
 
@@ -38,7 +40,7 @@ contains
 
 	subroutine setMesh(this,rho_back)
 		type(mesh), intent(inout) :: this
-		real(mp), intent(in) :: rho_back
+		real(mp), intent(in) :: rho_back(this%ng)
 
 		this%rho_back = rho_back
 	end subroutine
@@ -48,6 +50,7 @@ contains
 
 		deallocate(this%E)
 		deallocate(this%rho)
+		deallocate(this%rho_back)
 		deallocate(this%phi)
 		deallocate(this%W)
 	end subroutine
