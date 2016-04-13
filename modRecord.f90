@@ -1,24 +1,28 @@
 module modRecord
 
-	use modPlasma
-	use modMesh
+	use modPM1D
 
 	implicit none
 
+	type array
+		real(mp), allocatable :: vec(:)
+	end type
+
 	type recordData
 		integer :: nt, n, ng
+		integer, allocatable :: np(:,:)
 		real(mp) :: L, dx
 		character(len=:), allocatable :: dir
 
-		real(mp), allocatable :: xpdata(:,:)
-		real(mp), allocatable :: vpdata(:,:)
-		real(mp), allocatable :: xpsdata(:,:)
-		real(mp), allocatable :: vpsdata(:,:)
+		type(array), allocatable :: xpdata(:,:)
+		type(array), allocatable :: vpdata(:,:)
+		type(array), allocatable :: xpsdata(:,:)
+		type(array), allocatable :: vpsdata(:,:)
+		type(array), allocatable :: Epdata(:,:)
 
-		real(mp), allocatable :: Epdata(:,:)
 		real(mp), allocatable :: Edata(:,:)
 		real(mp), allocatable :: rhodata(:,:)
-		real(mp), allocatable :: PE(:), KE(:)
+		real(mp), allocatable :: PE(:), KE(:,:)
 	end type
 
 contains
@@ -34,17 +38,18 @@ contains
 		this%L = L
 		this%ng = ng
 
+		allocate(this%np(n,nt))
 		allocate(this%xpdata(n,nt))
 		allocate(this%vpdata(n,nt))
 		allocate(this%xpsdata(n,nt))
 		allocate(this%vpsdata(n,nt))
-
 		allocate(this%Epdata(n,nt))
+
 		allocate(this%Edata(ng,nt))
 		allocate(this%rhodata(ng,nt))
 
 		allocate(this%PE(nt))
-		allocate(this%KE(nt))
+		allocate(this%KE(n,nt))
 
 		if( present(input_dir) ) then
 			allocate(character(len=len(input_dir)) :: this%dir)
@@ -59,13 +64,24 @@ contains
 
 	subroutine destroyRecord(this)
 		type(recordData), intent(inout) :: this
+		integer :: i,j
+
+		do i=1,this%n
+			do j=1, this%nt
+				deallocate(this%xpdata(i,j)%vec)
+				deallocate(this%vpdata(i,j)%vec)
+!				deallocate(this%xpsdata(i,j)%vec)
+!				deallocate(this%vpsdata(i,j)%vec)
+				deallocate(this%Epdata(i,j)%vec)
+			end do
+		end do
 
 		deallocate(this%xpdata)
 		deallocate(this%vpdata)
 		deallocate(this%xpsdata)
 		deallocate(this%vpsdata)
-
 		deallocate(this%Epdata)
+
 		deallocate(this%Edata)
 		deallocate(this%rhodata)
 
@@ -75,63 +91,81 @@ contains
 		deallocate(this%dir)
 	end subroutine
 
-	subroutine recordPlasma(this,p,m,k)
+	subroutine recordPlasma(this,pm,k)
 		type(recordData), intent(inout) :: this
-		type(plasma), intent(in) :: p
-		type(mesh), intent(in) :: m
-		integer, intent(in) :: k
+		type(PM1D), intent(in) :: pm
+		integer, intent(in) :: k					!k : time step
+		integer :: n								!n : species
 
-		this%xpdata(:,k) = p%xp
-		this%vpdata(:,k) = p%vp
-		this%Epdata(:,k) = p%Ep
-		this%Edata(:,k) = m%E
-		this%rhodata(:,k) = m%rho
-		this%PE(k) = 0.5_mp*SUM(m%E**2)*m%dx
-		this%KE(k) = 0.5_mp*SUM(p%ms*(p%vp**2))
+		do n=1,pm%n
+			this%np(n,k) = pm%p(n)%np
+			allocate(this%xpdata(n,k)%vec(pm%p(n)%np))
+			allocate(this%vpdata(n,k)%vec(pm%p(n)%np))
+			allocate(this%Epdata(n,k)%vec(pm%p(n)%np))
+
+			this%xpdata(n,k)%vec = pm%p(n)%xp
+			this%vpdata(n,k)%vec = pm%p(n)%vp
+			this%Epdata(n,k)%vec = pm%p(n)%Ep
+			this%KE(n,k) = 0.5_mp*SUM(pm%p(n)%ms*(pm%p(n)%vp**2))
+		end do
+
+		this%Edata(:,k) = pm%m%E
+		this%rhodata(:,k) = pm%m%rho
+		this%PE(k) = 0.5_mp*SUM(pm%m%E**2)*pm%m%dx
 	end subroutine
 
 	subroutine printPlasma(this,str)
 		type(recordData), intent(in) :: this
 		character(len=*), intent(in), optional :: str
-		integer :: i
+		character(len=100) :: s
+		integer :: i,j
 
 		if( present(str) ) then
 			open(unit=300,file='data/'//this%dir//'/record'//str,status='replace')
-			open(unit=301,file='data/'//this%dir//'/xp'//str//'.bin',status='replace',form='unformatted',access='stream')
-			open(unit=302,file='data/'//this%dir//'/vp'//str//'.bin',status='replace',form='unformatted',access='stream')
-			open(unit=303,file='data/'//this%dir//'/E'//str//'.bin',status='replace',form='unformatted',access='stream')
-			open(unit=304,file='data/'//this%dir//'/rho'//str//'.bin',status='replace',form='unformatted',access='stream')
-			open(unit=305,file='data/'//this%dir//'/PE'//str//'.bin',status='replace',form='unformatted',access='stream')
-			open(unit=306,file='data/'//this%dir//'/KE'//str//'.bin',status='replace',form='unformatted',access='stream')
+			open(unit=301,file='data/'//this%dir//'/E'//str//'.bin',status='replace',form='unformatted',access='stream')
+			open(unit=302,file='data/'//this%dir//'/rho'//str//'.bin',status='replace',form='unformatted',access='stream')
+			open(unit=303,file='data/'//this%dir//'/PE'//str//'.bin',status='replace',form='unformatted',access='stream')
+			do i=1,this%n
+				write(s,*) i
+				open(unit=304+3*i,file='data/'//this%dir//'/xp_'//trim(s)//'_'//str//'.bin',status='replace',form='unformatted',access='stream')
+				open(unit=305+3*i,file='data/'//this%dir//'/vp_'//trim(s)//'_'//str//'.bin',status='replace',form='unformatted',access='stream')
+				open(unit=306+3*i,file='data/'//this%dir//'/KE_'//trim(s)//'_'//str//'.bin',status='replace',form='unformatted',access='stream')
+			end do
 		else
 			open(unit=300,file='data/'//this%dir//'/record',status='replace')
-			open(unit=301,file='data/'//this%dir//'/xp.bin',status='replace',form='unformatted',access='stream')
-			open(unit=302,file='data/'//this%dir//'/vp.bin',status='replace',form='unformatted',access='stream')
-			open(unit=303,file='data/'//this%dir//'/E.bin',status='replace',form='unformatted',access='stream')
-			open(unit=304,file='data/'//this%dir//'/rho.bin',status='replace',form='unformatted',access='stream')
-			open(unit=305,file='data/'//this%dir//'/PE.bin',status='replace',form='unformatted',access='stream')
-			open(unit=306,file='data/'//this%dir//'/KE.bin',status='replace',form='unformatted',access='stream')
+			open(unit=301,file='data/'//this%dir//'/E.bin',status='replace',form='unformatted',access='stream')
+			open(unit=302,file='data/'//this%dir//'/rho.bin',status='replace',form='unformatted',access='stream')
+			open(unit=303,file='data/'//this%dir//'/PE.bin',status='replace',form='unformatted',access='stream')
+			do i=1,this%n
+				write(s,*) i
+				open(unit=304+3*i,file='data/'//this%dir//'/xp_'//trim(adjustl(s))//'.bin',status='replace',form='unformatted',access='stream')
+				open(unit=305+3*i,file='data/'//this%dir//'/vp_'//trim(adjustl(s))//'.bin',status='replace',form='unformatted',access='stream')
+				open(unit=306+3*i,file='data/'//this%dir//'/KE_'//trim(adjustl(s))//'.bin',status='replace',form='unformatted',access='stream')
+			end do
 		end if
 
 		write(300,*) this%n, this%ng, this%nt, this%L
 		close(300)
 
 		do i = 1,this%nt
-			write(301) this%xpdata(:,i)
-			write(302) this%vpdata(:,i)
+			write(301) this%Edata(:,i)
+			write(302) this%rhodata(:,i)
+			write(303) this%PE(i)
 
-!			write(303) this%Epdata(:,i)
-			write(303) this%Edata(:,i)
-			write(304) this%rhodata(:,i)
-			write(305) this%PE(i)
-			write(306) this%KE(i)
+			do j=1,this%n
+				write(304+3*j) this%xpdata(j,i)%vec
+				write(305+3*j) this%vpdata(j,i)%vec
+				write(306+3*j) this%KE(j,i)
+			end do
 		end do
 		close(301)
 		close(302)
 		close(303)
-		close(304)
-		close(305)
-		close(306)
+		do i=1,this%n
+			close(304+3*i)
+			close(305+3*i)
+			close(306+3*i)
+		end do
 	end subroutine
 
 end module

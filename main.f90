@@ -8,7 +8,7 @@ program main
 	! print to screen
 	print *, 'calling program main'
 
-	call testforward(64,10000,1,0.2_mp,20.0_mp,60.0_mp)
+	call testforward(64,5000,1,0.2_mp,20.0_mp,60.0_mp)
 !	call test_DST
 
 	! print to screen
@@ -18,20 +18,23 @@ contains
 
 	! You can add custom subroutines/functions here later, if you want
 
-	subroutine testforward(Ng,N,order,dt,Ti,Tf)
+	subroutine testforward(Ng,Np,order,dt,Ti,Tf)
 		type(PM1D) :: twostream
-		integer, intent(in) :: Ng, N, order
+		type(recordData) :: r
+		integer, intent(in) :: Ng, Np, order
 		real(mp), intent(in) :: dt,Ti,Tf
-		real(mp) :: xp0(N), vp0(N), qs(N), ms(N), rho_back
+		integer :: N=2
 
-		call buildPM1D(twostream,Tf,Ti,Ng,N,0,order,dir='test')
+		call buildPM1D(twostream,Tf,Ti,Ng,N,0,order)
+		call buildRecord(r,twostream%nt,N,twostream%L,Ng,'species_test')
 
-		call particle_initialize(twostream,0.2_mp,0.0_mp,1,xp0,vp0,qs,ms,rho_back)
+		call twostream_initialize(twostream,Np,0.2_mp,0.0_mp,1)
 
-		call forwardsweep(twostream,xp0,vp0,qs,ms,rho_back,IC_wave)
+		call forwardsweep(twostream,r,IC_wave)
 
-		call printPlasma(twostream%r)
+		call printPlasma(r)
 
+		call destroyRecord(r)
 		call destroyPM1D(twostream)
 	end subroutine
 

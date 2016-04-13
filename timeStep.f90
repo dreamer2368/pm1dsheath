@@ -2,15 +2,15 @@ module timeStep
 
 	use modSource
 	use modBC
+	use modRecord
 
 	implicit none
 
 contains
 
-	subroutine forwardsweep(this,xp0,vp0,qs,ms,rho_back,source)
+	subroutine forwardsweep(this,r,source)
 		type(PM1D), intent(inout) :: this
-		real(mp), dimension(this%n), intent(in) :: xp0, vp0
-		real(mp), intent(in) :: qs(this%n), ms(this%n), rho_back
+		type(recordData), intent(inout) :: r
 		integer :: k
 		interface
 			subroutine source(pm,k,str)
@@ -21,14 +21,10 @@ contains
 			end subroutine
 		end interface
 
-		!initial condition
-		call setPlasma(this%p,xp0,vp0,qs,ms)
-		call setMesh(this%m,rho_back)
-
 		!Time stepping
 		call halfStep(this)
 		do k=1,this%nt
-			call updatePlasma(this,source,k)
+			call updatePlasma(this,r,source,k)
 		end do
 	end subroutine
 
@@ -45,7 +41,9 @@ contains
 		Ng = this%ng
 
 		call applyBC(this)
-		call assignMatrix(this%a,this%m,this%p%xp)
+		do i=1,this%n
+			call assignMatrix(this%a(i),this%m,this%p(i)%xp)
+		end do
 		call adjustGrid(this)
 
 		!charge assignment
@@ -63,18 +61,23 @@ contains
 		this%m%E = - multiplyD(this%m%phi,this%m%dx)
 
 		!Force assignment : mat'*E
-		call forceAssign(this%a,this%p,this%m)
+		do i=1, this%n
+			call forceAssign(this%a(i),this%p(i),this%m)
+		end do
 
 		!Half time step advancement in velocity
-		this%p%vp = this%p%vp + dt/2.0_mp*this%p%qs/this%p%ms*this%p%Ep
+		do i=1, this%n
+			call accelSpecies(this%p(i),dt/2.0_mp)
+		end do
 	end subroutine
 
-	subroutine updatePlasma(this,source,k)
+	subroutine updatePlasma(this,r,source,k)
 		type(PM1D), intent(inout) :: this
+		type(recordData), intent(inout) :: r
 		integer, intent(in) :: k
 		real(mp) :: rhs(this%ng-1), phi1(this%ng-1)
 		real(mp) :: dt, L, B
-		integer :: N, Ng
+		integer :: N, Ng, i
 		interface
 			subroutine source(pm,k,str)
 				use modPM1D
@@ -89,13 +92,18 @@ contains
 		B = this%B0
 		Ng = this%ng
 
-		call recordPlasma(this%r, this%p, this%m ,k)									!record for n=0~(Nt-1)
+		call recordPlasma(r, this, k)									!record for n=0~(Nt-1)
 
 		call source(this,k,'xp')
-		this%p%xp = this%p%xp + dt*this%p%vp
+
+		do i=1,this%n
+			call moveSpecies(this%p(i),dt)
+		end do
 
 		call applyBC(this)
-		call assignMatrix(this%a,this%m,this%p%xp)
+		do i=1, this%n
+			call assignMatrix(this%a(i),this%m,this%p(i)%xp)
+		end do
 		call adjustGrid(this)
 
 		!charge assignment
@@ -112,10 +120,13 @@ contains
 		this%m%E = - multiplyD(this%m%phi,this%m%dx)
 
 		!Force assignment : mat'*E
-		call forceAssign(this%a, this%p, this%m)
+		do i=1, this%n
+			call forceAssign(this%a(i), this%p(i), this%m)
+		end do
 
-		!Half time step advancement in velocity
-		this%p%vp = this%p%vp + dt*this%p%qs/this%p%ms*this%p%Ep
+		do i=1, this%n
+			call accelSpecies(this%p(i),dt)
+		end do
 	end subroutine
 !
 !	subroutine QOI(this,J)

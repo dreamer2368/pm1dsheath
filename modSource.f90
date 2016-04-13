@@ -15,7 +15,7 @@ contains
 		SELECT CASE (str)
 			CASE('xp')
 				if(k==this%ni) then
-					this%p%xp = this%p%xp + this%dt*this%B0*this%L/this%n*SIN(4.0_mp*pi*this%p%xp/this%L)		!xp_(Ni-1) : k=Ni, xp_Ni : k=(Ni+1)
+					this%p(1)%xp = this%p(1)%xp + this%dt*this%B0*this%L/this%p(1)%np*SIN(4.0_mp*pi*this%p(1)%xp/this%L)		!xp_(Ni-1) : k=Ni, xp_Ni : k=(Ni+1)
 				end if
 		END SELECT
 	end subroutine
