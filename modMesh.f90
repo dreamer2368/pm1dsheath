@@ -5,7 +5,7 @@ module modMesh
 	implicit none
 
 	type mesh
-		integer :: ng
+		integer :: ng, BCindex
 		real(mp) :: L, dx
 
 		real(mp), allocatable :: E(:)
@@ -18,14 +18,20 @@ module modMesh
 
 contains
 
-	subroutine buildMesh(this,L,ng)
+	subroutine buildMesh(this,L,ng,BC)
 		type(mesh), intent(out) :: this
-		integer, intent(in) :: ng
+		integer, intent(in) :: ng, BC
 		real(mp), intent(in) :: L
 
 		this%L = L
 		this%ng = ng
-		this%dx = L/ng
+		this%BCindex = BC
+		select case (this%BCindex)
+			case(0)						!periodic
+				this%dx = L/ng
+			case(1)						!Dirichlet-Dirichlet
+				this%dx = L/(ng-1)
+		end select
 
 		allocate(this%E(ng))
 		allocate(this%phi(ng))
@@ -53,6 +59,43 @@ contains
 		deallocate(this%rho_back)
 		deallocate(this%phi)
 		deallocate(this%W)
+	end subroutine
+
+!===========Mesh Solver===============================================
+
+	subroutine solveMesh(this,eps)
+		type(mesh), intent(inout) :: this
+		real(mp), intent(in) :: eps
+
+		select case(this%BCindex)
+			case(0)
+				call solveMesh_periodic(this,eps)
+			case(1)
+				call solveMesh_D_D(this,eps)
+		end select
+	end subroutine
+
+	subroutine solveMesh_periodic(this,eps)
+		type(mesh), intent(inout) :: this
+		real(mp), intent(in) :: eps
+		real(mp), dimension(this%ng-1) :: rhs, phi1
+
+		rhs = -this%rho(1:this%ng-1)/eps
+		call CG_K(phi1,rhs,this%dx)
+		this%phi(1:this%ng-1) = phi1
+		this%phi(this%ng) = 0.0_mp
+	end subroutine
+
+	subroutine solveMesh_D_D(this,eps)
+		type(mesh), intent(inout) :: this
+		real(mp), intent(in) :: eps
+		real(mp), dimension(this%ng-2) :: rhs, phi1
+
+		rhs = -this%rho(2:this%ng-1)/eps
+		call CG_K(phi1,rhs,this%dx)
+		this%phi(2:this%ng-1) = phi1
+		this%phi(1) = 0.0_mp
+		this%phi(this%ng) = 0.0_mp
 	end subroutine
 
 end module

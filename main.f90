@@ -43,7 +43,7 @@ contains
 		integer, parameter :: Ng = 64
 		real(mp) :: L = 2.0_mp, rhs(Ng)
 
-		call buildMesh(this,L,Ng)
+		call buildMesh(this,L,Ng,0)
 
 		rhs = 1.0_mp
 		call DSTPoisson(this%phi,rhs,this%W)

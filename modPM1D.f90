@@ -61,7 +61,7 @@ contains
 		this%eps0 = 1.0_mp
 		this%wp = 1.0_mp
 		allocate(this%p(N))
-		call buildMesh(this%m,this%L,Ng)
+		call buildMesh(this%m,this%L,Ng,this%BCindex)
 		allocate(this%a(N))
 		do i=1,N
 			call buildAssign(this%a(i),Ng,order)

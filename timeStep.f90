@@ -49,13 +49,7 @@ contains
 		!charge assignment
 		call chargeAssign(this%a,this%p,this%m)
 
-		!field equation rhs
-		rhs = -this%m%rho(1:Ng-1)/this%eps0
-
-		!solve field equation
-		call CG_K(phi1,rhs,this%m%dx)				!Conjugate-Gradient Iteration
-		this%m%phi(1:Ng-1) = phi1
-		this%m%phi(Ng) = 0.0_mp
+		call solveMesh(this%m,this%eps0)
 
 		!Electric field : -D*phi
 		this%m%E = - multiplyD(this%m%phi,this%m%dx)
@@ -109,12 +103,7 @@ contains
 		!charge assignment
 		call chargeAssign(this%a,this%p,this%m)
 
-		!field equation rhs
-		rhs = -this%m%rho(1:Ng-1)/this%eps0
-		!solve field equation
-		call CG_K(phi1,rhs,this%m%dx)				!Conjugate-Gradient Iteration
-		this%m%phi(1:Ng-1) = phi1
-		this%m%phi(Ng) = 0.0_mp
+		call solveMesh(this%m,this%eps0)
 
 		!Electric field : -D*phi
 		this%m%E = - multiplyD(this%m%phi,this%m%dx)
