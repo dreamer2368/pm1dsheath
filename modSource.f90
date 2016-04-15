@@ -5,6 +5,14 @@ module modSource
 	implicit none
 
 contains
+!==============Default=====================================================
+
+	subroutine Null_input(this,k,str)
+		type(PM1D), intent(inout) :: this
+		integer, intent(in) :: k
+		character(len=*), intent(in) :: str
+	end subroutine
+
 !==============Wave perturbation on position===============================
 
 	subroutine IC_wave(this,k,str)

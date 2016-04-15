@@ -72,11 +72,11 @@ contains
 
 		!assignment matrix
 		do i=1,this%np
-			g1 = FLOOR(xp(i)/m%dx - 0.5_mp)+1
+			g1 = FLOOR(xp(i)/m%dx)+1
 			gl = g1
 			gr = gl+1
 
-			h = xp(i)/m%dx - g1 + 0.5_mp
+			h = xp(i)/m%dx - g1 + 1.0_mp
 			fracl = 1.0_mp - ABS(h)
 			fracr = 1.0_mp - fracl
 

@@ -8,7 +8,8 @@ program main
 	! print to screen
 	print *, 'calling program main'
 
-	call testforward(64,5000,1,0.2_mp,20.0_mp,60.0_mp)
+	call testsheath
+!	call testforward(64,5000,1,0.2_mp,20.0_mp,60.0_mp)
 !	call test_DST
 
 	! print to screen
@@ -17,6 +18,33 @@ program main
 contains
 
 	! You can add custom subroutines/functions here later, if you want
+
+	subroutine testsheath
+		type(PM1D) :: sheath
+		type(recordData) :: r
+		integer :: Ng=128, Ne=20000, Ni=10000, order=1
+		real(mp) :: eps = 8.85418782E-12, Kb = 1.38065E-23
+		real(mp) :: dt=5E-11,Time_i=5.0E-7,Tf=1.0E-6
+		real(mp) :: Te = 1.0_mp, Ti = 0.1_mp
+		real(mp) :: me = 9.10938215E-31, qe = -1.602176565E-19
+		real(mp) :: AMU = 1.660538921E-27, qi = 1.602176565E-19
+		real(mp) :: L = 0.04_mp
+
+		call buildPM1D(sheath,Tf,Time_i,Ng,2,1,order,dt=dt,L=L)
+		call buildRecord(r,sheath%nt,2,sheath%L,Ng,'sheath1D')
+
+		call buildSpecies(sheath%p(1),qe,me)
+		call buildSpecies(sheath%p(2),qi,8*AMU)
+
+		call sheath_initialize(sheath,Ne,Ni,Te,Ti,Kb)
+
+		call forwardsweep(sheath,r,Null_input)
+
+		call printPlasma(r)
+
+		call destroyRecord(r)
+		call destroyPM1D(sheath)
+	end subroutine
 
 	subroutine testforward(Ng,Np,order,dt,Ti,Tf)
 		type(PM1D) :: twostream

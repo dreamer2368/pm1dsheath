@@ -10,7 +10,7 @@ module modRecord
 
 	type recordData
 		integer :: nt, n, ng
-		integer, allocatable :: np(:,:)
+		integer*4, allocatable :: np(:,:)
 		real(mp) :: L, dx
 		character(len=:), allocatable :: dir
 
@@ -68,11 +68,17 @@ contains
 
 		do i=1,this%n
 			do j=1, this%nt
-				deallocate(this%xpdata(i,j)%vec)
-				deallocate(this%vpdata(i,j)%vec)
+				if( allocated(this%xpdata(i,j)%vec) ) then
+					deallocate(this%xpdata(i,j)%vec)
+				end if
+				if( allocated(this%vpdata(i,j)%vec) ) then
+					deallocate(this%vpdata(i,j)%vec)
+				end if
+				if( allocated(this%Epdata(i,j)%vec) ) then
+					deallocate(this%Epdata(i,j)%vec)
+				end if
 !				deallocate(this%xpsdata(i,j)%vec)
 !				deallocate(this%vpsdata(i,j)%vec)
-				deallocate(this%Epdata(i,j)%vec)
 			end do
 		end do
 
@@ -125,22 +131,24 @@ contains
 			open(unit=301,file='data/'//this%dir//'/E'//str//'.bin',status='replace',form='unformatted',access='stream')
 			open(unit=302,file='data/'//this%dir//'/rho'//str//'.bin',status='replace',form='unformatted',access='stream')
 			open(unit=303,file='data/'//this%dir//'/PE'//str//'.bin',status='replace',form='unformatted',access='stream')
+			open(unit=304,file='data/'//this%dir//'/Np'//str//'.bin',status='replace',form='unformatted',access='stream')
 			do i=1,this%n
 				write(s,*) i
-				open(unit=304+3*i,file='data/'//this%dir//'/xp_'//trim(s)//'_'//str//'.bin',status='replace',form='unformatted',access='stream')
-				open(unit=305+3*i,file='data/'//this%dir//'/vp_'//trim(s)//'_'//str//'.bin',status='replace',form='unformatted',access='stream')
-				open(unit=306+3*i,file='data/'//this%dir//'/KE_'//trim(s)//'_'//str//'.bin',status='replace',form='unformatted',access='stream')
+				open(unit=305+3*i,file='data/'//this%dir//'/xp_'//trim(s)//'_'//str//'.bin',status='replace',form='unformatted',access='stream')
+				open(unit=306+3*i,file='data/'//this%dir//'/vp_'//trim(s)//'_'//str//'.bin',status='replace',form='unformatted',access='stream')
+				open(unit=307+3*i,file='data/'//this%dir//'/KE_'//trim(s)//'_'//str//'.bin',status='replace',form='unformatted',access='stream')
 			end do
 		else
 			open(unit=300,file='data/'//this%dir//'/record',status='replace')
 			open(unit=301,file='data/'//this%dir//'/E.bin',status='replace',form='unformatted',access='stream')
 			open(unit=302,file='data/'//this%dir//'/rho.bin',status='replace',form='unformatted',access='stream')
 			open(unit=303,file='data/'//this%dir//'/PE.bin',status='replace',form='unformatted',access='stream')
+			open(unit=304,file='data/'//this%dir//'/Np.bin',status='replace',form='unformatted',access='stream')
 			do i=1,this%n
 				write(s,*) i
-				open(unit=304+3*i,file='data/'//this%dir//'/xp_'//trim(adjustl(s))//'.bin',status='replace',form='unformatted',access='stream')
-				open(unit=305+3*i,file='data/'//this%dir//'/vp_'//trim(adjustl(s))//'.bin',status='replace',form='unformatted',access='stream')
-				open(unit=306+3*i,file='data/'//this%dir//'/KE_'//trim(adjustl(s))//'.bin',status='replace',form='unformatted',access='stream')
+				open(unit=305+3*i,file='data/'//this%dir//'/xp_'//trim(adjustl(s))//'.bin',status='replace',form='unformatted',access='stream')
+				open(unit=306+3*i,file='data/'//this%dir//'/vp_'//trim(adjustl(s))//'.bin',status='replace',form='unformatted',access='stream')
+				open(unit=307+3*i,file='data/'//this%dir//'/KE_'//trim(adjustl(s))//'.bin',status='replace',form='unformatted',access='stream')
 			end do
 		end if
 
@@ -151,20 +159,22 @@ contains
 			write(301) this%Edata(:,i)
 			write(302) this%rhodata(:,i)
 			write(303) this%PE(i)
+			write(304) this%np(:,i)
 
 			do j=1,this%n
-				write(304+3*j) this%xpdata(j,i)%vec
-				write(305+3*j) this%vpdata(j,i)%vec
-				write(306+3*j) this%KE(j,i)
+				write(305+3*j) this%xpdata(j,i)%vec
+				write(306+3*j) this%vpdata(j,i)%vec
+				write(307+3*j) this%KE(j,i)
 			end do
 		end do
 		close(301)
 		close(302)
 		close(303)
+		close(304)
 		do i=1,this%n
-			close(304+3*i)
 			close(305+3*i)
 			close(306+3*i)
+			close(307+3*i)
 		end do
 	end subroutine
 

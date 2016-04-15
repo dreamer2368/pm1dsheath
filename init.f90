@@ -47,4 +47,34 @@ contains
 		call setMesh(this%m,rho_back*(/ ( 1, i=1,this%m%ng) /))
 	end subroutine
 
+	subroutine sheath_initialize(this,Ne,Ni,Te,Ti,Kb)
+		type(PM1D), intent(inout) :: this
+		integer, intent(in) :: Ne, Ni
+		real(mp), intent(in) :: Te, Ti, Kb
+		real(mp) :: Vth_e, Vth_i
+		real(mp) :: xpe(Ne), vpe(Ne), xpi(Ni), vpi(Ni)
+		integer :: i,nseed
+		integer, allocatable :: seed(:)
+
+		call RANDOM_SEED(size=nseed)
+		allocate(seed(nseed))
+		seed = (/ ( i, i=1,nseed ) /)
+		call RANDOM_SEED(put=seed)
+		call RANDOM_NUMBER(xpe)
+		call RANDOM_NUMBER(xpi)
+		xpe = xpe*this%L
+		xpi = xpi*this%L
+
+		Vth_e = sqrt(2.0_mp*Kb*Te/this%p(1)%ms)
+		Vth_i = sqrt(2.0_mp*Kb*Ti/this%p(2)%ms)
+		print *, 'Vth_e: ',Vth_e,', Vth_i: ',Vth_i
+		vpe = Vth_e*randn(Ne)
+		vpi = Vth_i*randn(Ni)
+
+		call setSpecies(this%p(1),Ne,xpe,vpe)
+		call setSpecies(this%p(2),Ni,xpi,vpi)
+
+		call setMesh(this%m, (/ (0.0_mp, i=1,this%m%ng) /))
+	end subroutine
+
 end module

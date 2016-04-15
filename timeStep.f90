@@ -25,6 +25,10 @@ contains
 		call halfStep(this)
 		do k=1,this%nt
 			call updatePlasma(this,r,source,k)
+			if( mod(k,100).eq.0 ) then
+				print *, 'Species(1): ',this%p(1)%np
+				print *, 'Species(2): ',this%p(2)%np
+			end if
 		end do
 	end subroutine
 
