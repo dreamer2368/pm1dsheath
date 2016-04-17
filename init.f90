@@ -41,7 +41,7 @@ contains
 			xp0 = (/ ( j*L/Np, j=0,Np-1 ) /) + 0.5*(i-1)*L/Np
 			xp0 = xp0 + this%A0*L/Np*SIN( 2.0_mp*pi*xp0/L*mode )
 
-			call buildSpecies(this%p(i),qs,ms)
+			call buildSpecies(this%p(i),qs,ms,1.0_mp)
 			call setSpecies(this%p(i),Np,xp0,vp0)
 		end do
 		call setMesh(this%m,rho_back*(/ ( 1, i=1,this%m%ng) /))

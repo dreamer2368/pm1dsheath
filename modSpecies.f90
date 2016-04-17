@@ -10,17 +10,18 @@ module modSpecies
 		real(mp), allocatable :: vp(:)
 		real(mp), allocatable :: Ep(:)
 
-		real(mp) :: ms, qs
+		real(mp) :: ms, qs, spwt
 	end type
 
 contains
 
-	subroutine buildSpecies(this,qs,ms)
+	subroutine buildSpecies(this,qs,ms,spwt)
 		type(species), intent(out) :: this
-		real(mp), intent(in) :: ms, qs
+		real(mp), intent(in) :: ms, qs, spwt
 
 		this%ms = ms
 		this%qs = qs
+		this%spwt = spwt
 	end subroutine
 
 	subroutine setSpecies(this,np0,xp0,vp0)
