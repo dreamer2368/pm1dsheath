@@ -9,7 +9,7 @@ module modRecord
 	end type
 
 	type recordData
-		integer :: nt, n, ng
+		integer :: nt, n, ng, mod
 		integer*4, allocatable :: np(:,:)
 		real(mp) :: L, dx
 		character(len=:), allocatable :: dir
@@ -27,9 +27,9 @@ module modRecord
 
 contains
 
-	subroutine buildRecord(this,nt,n,L,ng,input_dir)
+	subroutine buildRecord(this,nt,n,L,ng,input_dir,mod)
 		type(recordData), intent(out) :: this
-		integer, intent(in) :: nt, n, ng
+		integer, intent(in) :: nt, n, ng, mod
 		real(mp), intent(in) :: L
 		character(len=*), intent(in), optional :: input_dir
 
@@ -37,6 +37,7 @@ contains
 		this%n = n
 		this%L = L
 		this%ng = ng
+		this%mod = mod
 
 		allocate(this%np(n,nt))
 		allocate(this%xpdata(n,nt))
@@ -152,19 +153,19 @@ contains
 			end do
 		end if
 
-		write(300,*) this%n, this%ng, this%nt, this%L
+		write(300,*) this%n, this%ng, this%nt, this%L, this%mod
 		close(300)
 
-		do i = 1,this%nt
-			write(301) this%Edata(:,i)
-			write(302) this%rhodata(:,i)
-			write(303) this%PE(i)
-			write(304) this%np(:,i)
+		do i = 0,this%nt/this%mod-1
+			write(301) this%Edata(:,i*this%mod+1)
+			write(302) this%rhodata(:,i*this%mod+1)
+			write(303) this%PE(i*this%mod+1)
+			write(304) this%np(:,i*this%mod+1)
 
 			do j=1,this%n
-				write(305+3*j) this%xpdata(j,i)%vec
-				write(306+3*j) this%vpdata(j,i)%vec
-				write(307+3*j) this%KE(j,i)
+				write(305+3*j) this%xpdata(j,i*this%mod+1)%vec
+				write(306+3*j) this%vpdata(j,i*this%mod+1)%vec
+				write(307+3*j) this%KE(j,i*this%mod+1)
 			end do
 		end do
 		close(301)
