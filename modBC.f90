@@ -48,17 +48,17 @@ contains
 		np1 = p%np
 		!apply BC
 		do i=1,p%np
-			if( p%xp(i)<0 ) then
+			if( p%xp(i).le.0.0_mp ) then
 				p%xp(i) = p%xp(np1)					!replacement with the last particle
 				p%vp(i) = p%vp(np1)
 				p%Ep(i) = p%Ep(np1)
-				m%rho_back(1) = m%rho_back(1) + p%qs/0.5_mp/m%dx
+				m%rho_back(1) = m%rho_back(1) + p%spwt*p%qs/0.5_mp/m%dx
 				np1 = np1-1
-			elseif( p%xp(i)>=m%L ) then
+			elseif( p%xp(i).ge.m%L ) then
 				p%xp(i) = p%xp(np1)
 				p%vp(i) = p%vp(np1)
 				p%Ep(i) = p%Ep(np1)
-				m%rho_back(m%ng) = m%rho_back(m%ng) + p%qs/0.5_mp/m%dx
+				m%rho_back(m%ng) = m%rho_back(m%ng) + p%spwt*p%qs/0.5_mp/m%dx
 				np1 = np1-1
 			end if
 		end do
@@ -97,7 +97,7 @@ contains
 				end do
 			case(1)	!absorbing
 				do i=1,pm%n
-					call adjustGrid_absorbing(pm%a(i))
+					call adjustGrid_absorbing(pm%a(i),pm%p(i))
 				end do
 		end select
 	end subroutine
@@ -126,9 +126,19 @@ contains
 		end if
 	end subroutine
 
-	subroutine adjustGrid_absorbing(a)
+	subroutine adjustGrid_absorbing(a,p)
 		type(pmassign), intent(inout) :: a
+		type(species), intent(in) :: p
 		integer :: i
+
+		do i=1,a%np
+			if( a%g(i,1)<1 ) then
+				a%g(i,1) = 1
+			end if
+			if( a%g(i,2)>a%ng ) then
+				a%g(i,2) = a%ng
+			end if
+		end do
 
 		if( MINVAL(a%g(:,1))<1 .or. MAXVAL(a%g(:,2))>a%ng ) then
 			print *, MINVAL(a%g(:,1)), MAXVAL(a%g(:,2))

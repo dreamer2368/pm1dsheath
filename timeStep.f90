@@ -25,10 +25,6 @@ contains
 		call halfStep(this)
 		do k=1,this%nt
 			call updatePlasma(this,r,source,k)
-			if( mod(k,100).eq.0 ) then
-				print *, 'Species(1): ',this%p(1)%np
-				print *, 'Species(2): ',this%p(2)%np
-			end if
 		end do
 	end subroutine
 
@@ -56,7 +52,7 @@ contains
 		call solveMesh(this%m,this%eps0)
 
 		!Electric field : -D*phi
-		this%m%E = - multiplyD(this%m%phi,this%m%dx)
+		this%m%E = - multiplyD(this%m%phi,this%m%dx,this%m%BCindex)
 
 		!Force assignment : mat'*E
 		do i=1, this%n
@@ -89,7 +85,6 @@ contains
 		N = this%n
 		B = this%B0
 		Ng = this%ng
-
 		call recordPlasma(r, this, k)									!record for n=0~(Nt-1)
 
 		call source(this,k,'xp')
@@ -110,7 +105,7 @@ contains
 		call solveMesh(this%m,this%eps0)
 
 		!Electric field : -D*phi
-		this%m%E = - multiplyD(this%m%phi,this%m%dx)
+		this%m%E = - multiplyD(this%m%phi,this%m%dx,this%m%BCindex)
 
 		!Force assignment : mat'*E
 		do i=1, this%n

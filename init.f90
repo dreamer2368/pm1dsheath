@@ -68,8 +68,8 @@ contains
 		Vth_e = sqrt(2.0_mp*Kb*Te/this%p(1)%ms)
 		Vth_i = sqrt(2.0_mp*Kb*Ti/this%p(2)%ms)
 		print *, 'Vth_e: ',Vth_e,', Vth_i: ',Vth_i
-		vpe = Vth_e*randn(Ne)
-		vpi = Vth_i*randn(Ni)
+		vpe = Vth_e/sqrt(2.0_mp)*randn(Ne)
+		vpi = Vth_i/sqrt(2.0_mp)*randn(Ni)
 
 		call setSpecies(this%p(1),Ne,xpe,vpe)
 		call setSpecies(this%p(2),Ni,xpi,vpi)

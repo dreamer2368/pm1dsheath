@@ -8,9 +8,10 @@ module MatrixVector
 
 contains
 
-	function multiplyD(x,dx) result(y)						!Derivative with periodic BC
+	function multiplyD(x,dx,idx) result(y)						!Derivative with BC
 		real(mp), intent(in) :: x(:)
 		real(mp), intent(in) :: dx
+		integer, intent(in) :: idx								!Boundary index
 		real(mp) :: y(size(x))
 		integer :: i
 
@@ -18,8 +19,15 @@ contains
 		do i=2,size(x)-1
 			y(i) = 0.5_mp/dx*( x(i+1) - x(i-1) )
 		end do
-		y(1) = 0.5_mp/dx*( x(2) - x(size(x)) )
-		y(size(x)) = 0.5_mp/dx*( x(1) - x(size(x)-1) )
+
+		select case(idx)
+			case(0)												!periodic BC
+				y(1) = 0.5_mp/dx*( x(2) - x(size(x)) )
+				y(size(x)) = 0.5_mp/dx*( x(1) - x(size(x)-1) )
+			case(1)												!D_D BC
+				y(1) = 0.5_mp/dx*( -3.0_mp*x(1) + 4.0_mp*x(2) - x(3) )
+				y(size(x)) = 0.5_mp/dx*( x(size(x)-2) - 4.0_mp*x(size(x)-1) + 3.0_mp*x(size(x)) )
+		end select
 	end function
 
 	function multiplyK(x,dx) result(y)

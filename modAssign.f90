@@ -139,7 +139,7 @@ contains
 		m%rho = 0.0_mp
 		do ip = 1, size(p)
 			do i=1,p(ip)%np
-				m%rho( this(ip)%g(i,:) ) = m%rho( this(ip)%g(i,:) ) + p(ip)%qs/m%dx*this(ip)%frac(i,:)
+				m%rho( this(ip)%g(i,:) ) = m%rho( this(ip)%g(i,:) ) + p(ip)%spwt*p(ip)%qs/m%dx*this(ip)%frac(i,:)
 			end do
 		end do
 		m%rho = m%rho + m%rho_back

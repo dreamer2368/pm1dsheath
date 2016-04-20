@@ -18,11 +18,11 @@ module modPM1D
 
 contains
 
-	subroutine buildPM1D(this,Tf,Ti,Ng,N,BC,order,dt,L,A,B)
+	subroutine buildPM1D(this,Tf,Ti,Ng,N,BC,order,dt,L,A,B,eps)
 		type(PM1D), intent(out) :: this
 		real(mp), intent(in) :: Tf,Ti
 		integer, intent(in) :: Ng, N, BC, order
-		real(mp), intent(in), optional :: dt, A, B, L
+		real(mp), intent(in), optional :: dt, A, B, L, eps
 		real(mp) :: L0
 		integer :: i
 		if( present(dt) ) then
@@ -45,6 +45,11 @@ contains
 		else
 			this%L = 2*pi/( sqrt(3.0_mp)/2.0_mp/sqrt(2.0_mp)/0.2_mp )
 		end if
+		if( present(eps) ) then
+			this%eps0 = eps
+		else
+			this%eps0 = 1.0_mp
+		end if
 		this%n = N
 		this%ng = Ng
 		this%BCindex = BC
@@ -58,7 +63,6 @@ contains
 		print *, 'A = ',this%A0
 		print *, 'Ni = ',this%ni,', Nt = ',this%nt,', dt = ',this%dt
 
-		this%eps0 = 1.0_mp
 		this%wp = 1.0_mp
 		allocate(this%p(N))
 		call buildMesh(this%m,this%L,Ng,this%BCindex)
