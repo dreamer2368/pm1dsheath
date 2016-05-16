@@ -30,7 +30,7 @@ contains
 		end select
 	end function
 
-	function multiplyK(x,dx) result(y)
+	function multiplyK(x,dx) result(y)		!periodic BC + Dirichlet BC
 		real(mp), intent(in) :: x(:)
 		real(mp), intent(in) :: dx
 		real(mp) :: y(size(x))
@@ -41,17 +41,25 @@ contains
 			y(i) = 1.0_mp/dx/dx*( x(i+1) - 2.0_mp*x(i) + x(i-1) )
 		end do
 		y(1) = 1.0_mp/dx/dx*( x(2) - 2.0_mp*x(1) )
-		y(size(x)) = 1.0_mp/dx/dx*( - 2.0_mp*x(size(x)) + x(size(x)-1) )		!periodic BC + Dirichlet BC
+		y(size(x)) = 1.0_mp/dx/dx*( - 2.0_mp*x(size(x)) + x(size(x)-1) )
 	end function
 
-	subroutine CG_K(x,b,dx)								!Kx = b
+	subroutine CG_K(K,x,b,dx)								!Kx = b
 		real(mp), intent(in) :: b(:)
 		real(mp), intent(in) :: dx
 		real(mp), intent(out) :: x(:)
 		real(mp) :: r(size(x)), p(size(x)), r1(size(x))
 		real(mp) :: alpha, beta
 		real(mp) :: tol
-		integer :: k = 0
+		integer :: i = 0
+		interface
+			function K(x,dx) result(y)
+				use constants
+				real(mp), intent(in) :: x(:)
+				real(mp), intent(in) :: dx
+				real(mp) :: y(size(x))
+			end function
+		end interface
 
 		select case (mp)
 			case (SELECTED_REAL_KIND(4))
@@ -73,22 +81,22 @@ contains
 		end if
 
 		x = 0.0_mp
-		r = b - multiplyK(x,dx)
+		r = b - K(x,dx)
 		p = r
 
-		k = 0
+		i = 0
 		do
-			alpha = DOT_PRODUCT(r,r)/DOT_PRODUCT(p,multiplyK(p,dx))
+			alpha = DOT_PRODUCT(r,r)/DOT_PRODUCT(p,K(p,dx))
 			x = x + alpha*p
 			r1 = r
-			r = r - alpha*multiplyK(p,dx)
+			r = r - alpha*K(p,dx)
 			if( DOT_PRODUCT(r,r) < tol ) then
 				exit
 			end if
 			beta = DOT_PRODUCT(r,r)/DOT_PRODUCT(r1,r1)
 			p = r + beta*p
-			k = k+1
-			if( k > 1e8 ) then
+			i = i+1
+			if( i > 1e8 ) then
 				print *, '====================================='
 				print *, '=========  CG METHOD FAILS   ========'
 				print *, '====================================='

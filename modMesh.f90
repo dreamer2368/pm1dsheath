@@ -81,7 +81,7 @@ contains
 		real(mp), dimension(this%ng-1) :: rhs, phi1
 
 		rhs = -this%rho(1:this%ng-1)/eps
-		call CG_K(phi1,rhs,this%dx)
+		call CG_K(multiplyK,phi1,rhs,this%dx)
 		this%phi(1:this%ng-1) = phi1
 		this%phi(this%ng) = 0.0_mp
 	end subroutine
@@ -92,7 +92,7 @@ contains
 		real(mp), dimension(this%ng-2) :: rhs, phi1
 
 		rhs = -this%rho(2:this%ng-1)/eps
-		call CG_K(phi1,rhs,this%dx)
+		call CG_K(multiplyK,phi1,rhs,this%dx)
 		this%phi(2:this%ng-1) = phi1
 		this%phi(1) = 0.0_mp
 		this%phi(this%ng) = 0.0_mp
