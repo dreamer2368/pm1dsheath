@@ -142,7 +142,7 @@ contains
 				m%rho( this(ip)%g(i,:) ) = m%rho( this(ip)%g(i,:) ) + p(ip)%spwt*p(ip)%qs/m%dx*this(ip)%frac(i,:)
 			end do
 		end do
-		m%rho = m%rho + m%rho_back
+		m%rho = m%rho
 	end subroutine
 
 	subroutine forceAssign(this,p,m)

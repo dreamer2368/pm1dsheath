@@ -10,7 +10,7 @@ module modMesh
 
 		real(mp), allocatable :: E(:)
 		real(mp), allocatable :: rho(:)
-		real(mp), allocatable :: rho_back(:)
+		real(mp), allocatable :: rho_back(:)				!1D sheath: surface charge
 		real(mp), allocatable :: phi(:)
 
 		complex(mp), allocatable :: W(:)
@@ -80,7 +80,7 @@ contains
 		real(mp), intent(in) :: eps
 		real(mp), dimension(this%ng-1) :: rhs, phi1
 
-		rhs = -this%rho(1:this%ng-1)/eps
+		rhs = -( this%rho(1:this%ng-1) + this%rho_back(1:this%ng-1) )/eps
 		call CG_K(multiplyK,phi1,rhs,this%dx)
 		this%phi(1:this%ng-1) = phi1
 		this%phi(this%ng) = 0.0_mp
@@ -91,7 +91,7 @@ contains
 		real(mp), intent(in) :: eps
 		real(mp), dimension(this%ng-2) :: rhs, phi1
 
-		rhs = -this%rho(2:this%ng-1)/eps
+		rhs = -( this%rho(2:this%ng-1) + this%rho_back(1:this%ng-1) )/eps
 		call CG_K(multiplyK,phi1,rhs,this%dx)
 		this%phi(2:this%ng-1) = phi1
 		this%phi(1) = 0.0_mp
