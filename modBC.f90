@@ -52,13 +52,13 @@ contains
 				p%xp(i) = p%xp(np1)					!replacement with the last particle
 				p%vp(i) = p%vp(np1)
 				p%Ep(i) = p%Ep(np1)
-				m%rho_back(1) = m%rho_back(1) + p%spwt*p%qs/0.5_mp/m%dx
+				m%rho_back(1) = m%rho_back(1) + p%spwt*p%qs
 				np1 = np1-1
 			elseif( p%xp(i).ge.m%L ) then
 				p%xp(i) = p%xp(np1)
 				p%vp(i) = p%vp(np1)
 				p%Ep(i) = p%Ep(np1)
-				m%rho_back(m%ng) = m%rho_back(m%ng) + p%spwt*p%qs/0.5_mp/m%dx
+				m%rho_back(m%ng) = m%rho_back(m%ng) + p%spwt*p%qs
 				np1 = np1-1
 			end if
 		end do
