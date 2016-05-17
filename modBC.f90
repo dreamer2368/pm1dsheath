@@ -49,12 +49,28 @@ contains
 		!apply BC
 		do i=1,p%np
 			if( p%xp(i).le.0.0_mp ) then
+				do while( (p%xp(np1).le.0.0_mp) .or. (p%xp(np1).ge.m%L) )
+					if( p%xp(np1).le.0.0_mp ) then
+						m%rho_back(1) = m%rho_back(1) + p%spwt*p%qs
+					else
+						m%rho_back(m%ng) = m%rho_back(m%ng) + p%spwt*p%qs
+					end if
+					np1 = np1-1
+				end do
 				p%xp(i) = p%xp(np1)					!replacement with the last particle
 				p%vp(i) = p%vp(np1)
 				p%Ep(i) = p%Ep(np1)
 				m%rho_back(1) = m%rho_back(1) + p%spwt*p%qs
 				np1 = np1-1
 			elseif( p%xp(i).ge.m%L ) then
+				do while( (p%xp(np1).le.0.0_mp) .or. (p%xp(np1).ge.m%L) )
+					if( p%xp(np1).le.0.0_mp ) then
+						m%rho_back(1) = m%rho_back(1) + p%spwt*p%qs
+					else
+						m%rho_back(m%ng) = m%rho_back(m%ng) + p%spwt*p%qs
+					end if
+					np1 = np1-1
+				end do
 				p%xp(i) = p%xp(np1)
 				p%vp(i) = p%vp(np1)
 				p%Ep(i) = p%Ep(np1)
@@ -82,6 +98,9 @@ contains
 		p%Ep = vec
 
 		deallocate(vec)
+if( minval(p%xp).le.0.0_mp ) then
+print *, minloc(p%xp), minval(p%xp)
+end if
 	end subroutine
 
 !===========================grid adjustment for BC=============================
@@ -131,17 +150,8 @@ contains
 		type(species), intent(in) :: p
 		integer :: i
 
-		do i=1,a%np
-			if( a%g(i,1)<1 ) then
-				a%g(i,1) = 1
-			end if
-			if( a%g(i,2)>a%ng ) then
-				a%g(i,2) = a%ng
-			end if
-		end do
-
 		if( MINVAL(a%g(:,1))<1 .or. MAXVAL(a%g(:,2))>a%ng ) then
-			print *, MINVAL(a%g(:,1)), MAXVAL(a%g(:,2))
+			print *, MINVAL(a%g(:,1)), p%xp(minloc(a%g(:,1))), MAXVAL(a%g(:,2)), p%xp(maxloc(a%g(:,2)))
 			print *, 'Boundary handling is failed. particle is way outside BC. stopped time stepping.'
 			stop
 		end if
