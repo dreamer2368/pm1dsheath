@@ -11,7 +11,8 @@ program main
 !	call testsheath
 !	call testforward(64,5000,1,0.2_mp,20.0_mp,60.0_mp)
 !	call test_DST
-	call test_Poisson_DN
+!	call test_Poisson_DN
+	call test_twostream
 
 	! print to screen
 	print *, 'program main...done.'
@@ -19,6 +20,25 @@ program main
 contains
 
 	! You can add custom subroutines/functions here later, if you want
+
+	subroutine test_twostream
+		type(PM1D) :: twostream
+		type(recordData) :: r
+		integer :: Ng=64, Ne=10000, order=1
+		real(mp) :: Ti=40,Tf=80
+
+		call buildPM1D(twostream,Tf,Ti,Ng,1,0,order)
+		call buildRecord(r,twostream%nt,1,twostream%L,Ng,'twostream1D',5)
+
+		call twostream_initialize(twostream,Ne,0.2_mp,0.0_mp,1)
+
+		call forwardsweep(twostream,r,Null_input)
+
+		call printPlasma(r)
+
+		call destroyRecord(r)
+		call destroyPM1D(twostream)
+	end subroutine
 
 	subroutine testsheath
 		type(PM1D) :: sheath

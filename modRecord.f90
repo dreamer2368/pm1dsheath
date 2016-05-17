@@ -51,6 +51,9 @@ contains
 
 		call system('mkdir -p data/'//this%dir//'/xp')
 		call system('mkdir -p data/'//this%dir//'/vp')
+
+		call system('rm data/'//this%dir//'/xp/*.*')
+		call system('rm data/'//this%dir//'/vp/*.*')
 	end subroutine
 
 	subroutine destroyRecord(this)
@@ -75,7 +78,7 @@ contains
 		character(len=100) :: nstr, kstr
 		real(mp) :: qe = 1.602176565E-19
 
-		if( mod(k,this%mod).eq.1 ) then
+		if( (mod(k,this%mod).eq.1) .or. (this%mod.eq.1) ) then
 			do n=1,pm%n
 				write(nstr,*) n
 				write(kstr,*) k/this%mod + 1
