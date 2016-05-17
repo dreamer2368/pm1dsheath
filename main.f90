@@ -11,7 +11,7 @@ program main
 !	call testsheath
 !	call testforward(64,5000,1,0.2_mp,20.0_mp,60.0_mp)
 !	call test_DST
-	call test_Poisson_DD
+	call test_Poisson_DN
 
 	! print to screen
 	print *, 'program main...done.'
@@ -112,6 +112,69 @@ contains
 			deallocate(rho)
 			deallocate(xg)
 			deallocate(phi_sol)
+		end do
+	end subroutine
+
+	subroutine test_Poisson_DN
+		integer :: Ng(3), i, j
+		real(mp) :: L, eps, dx, bc
+		real(mp), allocatable :: rhs1(:), rhs(:), phi1(:), phi(:), phi_sol(:), xg(:), test(:), co1(:), co2(:), co3(:)
+		character(len=100) :: Nstr
+		real(mp) :: start,finish
+
+		L = 1.0_mp
+		bc = 3.0_mp
+		Ng = (/ 2**5, 2**6, 2**7 /) + 1
+		do i=1,3
+			allocate(rhs(Ng(i)))
+			allocate(xg(Ng(i)))
+			allocate(phi(Ng(i)))
+			allocate(phi_sol(Ng(i)))
+
+			allocate(rhs1(Ng(i)-1))
+			allocate(phi1(Ng(i)-1))
+
+			allocate(co1(Ng(i)-1))
+			allocate(co2(Ng(i)-1))
+			allocate(co3(Ng(i)-1))
+			dx = L/(Ng(i)-1)
+			co2 = -2.0_mp/dx/dx
+			co1 = 1.0_mp/dx/dx
+			co3 = 1.0_mp/dx/dx
+			co2(Ng(i)-1) = 1.0_mp/dx
+			co1(Ng(i)-1) = -1.0_mp/dx
+
+			xg = (/ (j,j=0,Ng(i)-1) /)*dx
+			rhs = cos(xg)
+			rhs1(1:Ng(i)-2) = rhs(2:Ng(i)-1)
+			rhs1(Ng(i)-1) = bc
+
+			call cpu_time(start)
+			call solve_tridiag(co1,co2,co3,rhs1,phi1,Ng(i)-1)						!faster
+			call cpu_time(finish)
+			print *, 'Time: ',finish-start
+
+			phi(2:Ng(i)) = phi1
+			phi(1) = 0.0_mp
+			phi_sol = 1.0_mp-cos(xg) + (bc-sin(L-0.5_mp*dx))*xg
+			print *, 'Ng: ',Ng(i),', err: ',maxval(abs(phi-phi_sol))
+			write(Nstr,*) Ng(i)
+			open(unit=305,file='data/testphi_'//trim(adjustl(Nstr))//'.bin',status='replace',form='unformatted',access='stream')
+			write(305) phi
+			close(305)
+			open(unit=306,file='data/phisol_'//trim(adjustl(Nstr))//'.bin',status='replace',form='unformatted',access='stream')
+			write(306) phi_sol
+			close(306)
+
+			deallocate(rhs)
+			deallocate(xg)
+			deallocate(phi)
+			deallocate(phi_sol)
+			deallocate(rhs1)
+			deallocate(phi1)
+			deallocate(co1)
+			deallocate(co2)
+			deallocate(co3)
 		end do
 	end subroutine
 

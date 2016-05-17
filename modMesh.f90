@@ -98,4 +98,16 @@ contains
 		this%phi(this%ng) = 0.0_mp
 	end subroutine
 
+	subroutine solveMesh_D_N(this,eps)						!D(i=1), N(i=N)
+		type(mesh), intent(inout) :: this
+		real(mp), intent(in) :: eps
+		real(mp), dimension(this%ng-1) :: rhs, phi1
+
+		rhs = -this%rho(2:this%ng)/eps
+		call TTA(K_DN,phi1,rhs,this%dx)
+		this%phi(2:this%ng-1) = phi1
+		this%phi(1) = 0.0_mp
+		this%phi(this%ng) = 0.0_mp
+	end subroutine
+
 end module
