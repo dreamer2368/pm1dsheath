@@ -21,6 +21,10 @@ contains
 				do i=1,pm%n
 					call applyBC_absorbing(pm%p(i),pm%m)
 				end do
+			case(2) !absorbing-absorbing
+				do i=1,pm%n
+					call applyBC_absorbing(pm%p(i),pm%m)
+				end do
 		end select
 	end subroutine
 
@@ -46,37 +50,25 @@ contains
 		real(mp), allocatable :: vec(:)
 
 		np1 = p%np
+		i = 1
 		!apply BC
-		do i=1,p%np
+		do while( i .le. np1 )
 			if( p%xp(i).le.0.0_mp ) then
-				do while( (p%xp(np1).le.0.0_mp) .or. (p%xp(np1).ge.m%L) )
-					if( p%xp(np1).le.0.0_mp ) then
-						m%rho_back(1) = m%rho_back(1) + p%spwt*p%qs
-					else
-						m%rho_back(m%ng) = m%rho_back(m%ng) + p%spwt*p%qs
-					end if
-					np1 = np1-1
-				end do
 				p%xp(i) = p%xp(np1)					!replacement with the last particle
 				p%vp(i) = p%vp(np1)
 				p%Ep(i) = p%Ep(np1)
 				m%rho_back(1) = m%rho_back(1) + p%spwt*p%qs
 				np1 = np1-1
+				i = i-1
 			elseif( p%xp(i).ge.m%L ) then
-				do while( (p%xp(np1).le.0.0_mp) .or. (p%xp(np1).ge.m%L) )
-					if( p%xp(np1).le.0.0_mp ) then
-						m%rho_back(1) = m%rho_back(1) + p%spwt*p%qs
-					else
-						m%rho_back(m%ng) = m%rho_back(m%ng) + p%spwt*p%qs
-					end if
-					np1 = np1-1
-				end do
 				p%xp(i) = p%xp(np1)
 				p%vp(i) = p%vp(np1)
 				p%Ep(i) = p%Ep(np1)
 				m%rho_back(m%ng) = m%rho_back(m%ng) + p%spwt*p%qs
 				np1 = np1-1
+				i = i-1
 			end if
+			i = i+1
 		end do
 		p%np = np1
 
@@ -98,9 +90,6 @@ contains
 		p%Ep = vec
 
 		deallocate(vec)
-if( minval(p%xp).le.0.0_mp ) then
-print *, minloc(p%xp), minval(p%xp)
-end if
 	end subroutine
 
 !===========================grid adjustment for BC=============================
@@ -115,6 +104,10 @@ end if
 					call adjustGrid_periodic(pm%a(i))
 				end do
 			case(1)	!absorbing
+				do i=1,pm%n
+					call adjustGrid_absorbing(pm%a(i),pm%p(i))
+				end do
+			case(2)	!absorbing
 				do i=1,pm%n
 					call adjustGrid_absorbing(pm%a(i),pm%p(i))
 				end do
