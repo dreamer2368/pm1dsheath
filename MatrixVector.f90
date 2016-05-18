@@ -27,6 +27,9 @@ contains
 			case(1)												!D_D BC
 				y(1) = 0.5_mp/dx*( -3.0_mp*x(1) + 4.0_mp*x(2) - x(3) )
 				y(size(x)) = 0.5_mp/dx*( x(size(x)-2) - 4.0_mp*x(size(x)-1) + 3.0_mp*x(size(x)) )
+			case(2)												!D_N BC
+				y(1) = 0.5_mp/dx*( -3.0_mp*x(1) + 4.0_mp*x(2) - x(3) )
+				y(size(x)) = 0.5_mp/dx*( x(size(x)-2) - 4.0_mp*x(size(x)-1) + 3.0_mp*x(size(x)) )
 		end select
 	end function
 
