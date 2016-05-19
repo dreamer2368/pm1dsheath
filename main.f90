@@ -12,8 +12,8 @@ program main
 !	call testforward(64,5000,1,0.2_mp,20.0_mp,60.0_mp)
 !	call test_DST
 !	call test_Poisson_DN
-!	call test_twostream
-	call test_absorbing_boundary
+	call test_twostream
+!	call test_absorbing_boundary
 
 	! print to screen
 	print *, 'program main...done.'
