@@ -94,7 +94,7 @@ contains
 				close(306)
 
 				this%np(n,k/this%mod+1) = pm%p(n)%np
-				this%KE(n,k/this%mod+1) = 0.5_mp*SUM(pm%p(n)%ms*pm%p(n)%spwt*(pm%p(n)%vp**2))/qe/pm%p(n)%spwt/pm%p(n)%np
+				this%KE(n,k/this%mod+1) = 0.5_mp*SUM(pm%p(n)%ms*pm%p(n)%spwt*(pm%p(n)%vp**2))
 			end do
 
 			this%phidata(:,k/this%mod+1) = pm%m%phi
@@ -104,7 +104,7 @@ contains
 
 			print *, '============= ',k,'-th Time Step ================='
 			do n=1,pm%n
-				print *, 'Species(',n,'): ',pm%p(n)%np, ', KE: ',this%KE(n,k/this%mod+1)
+				print *, 'Species(',n,'): ',pm%p(n)%np, ', KE: ', 0.5_mp*pm%p(n)%ms*sum((pm%p(n)%vp)**2)
 			end do
 		end if
 	end subroutine

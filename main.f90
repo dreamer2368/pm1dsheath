@@ -12,7 +12,8 @@ program main
 !	call testforward(64,5000,1,0.2_mp,20.0_mp,60.0_mp)
 !	call test_DST
 !	call test_Poisson_DN
-	call test_twostream
+!	call test_twostream
+	call test_absorbing_boundary
 
 	! print to screen
 	print *, 'program main...done.'
@@ -20,6 +21,37 @@ program main
 contains
 
 	! You can add custom subroutines/functions here later, if you want
+
+	subroutine test_absorbing_boundary
+		type(PM1D) :: absorb
+		type(recordData) :: r
+		integer, parameter :: Ng=64, N=1, order=1
+		real(mp) :: Ti=20, Tf = 40
+		real(mp) :: xp0(N), vp0(N), rho_back(Ng), qe, me
+		integer :: i
+
+		call buildPM1D(absorb,Tf,Ti,Ng,1,2,order)
+		call buildRecord(r,absorb%nt,1,absorb%L,Ng,'test_absorb',1)
+
+		xp0(1) = absorb%L + 0.4_mp*absorb%m%dx
+		vp0 = 0.0_mp
+		rho_back = 0.0_mp
+		qe = -(0.1_mp)**2/(N/absorb%L)
+		me = -qe
+		rho_back(Ng) = -qe
+		call buildSpecies(absorb%p(1),qe,me,1.0_mp)
+		call setSpecies(absorb%p(1),N,xp0,vp0)
+		call setMesh(absorb%m,rho_back)
+
+		call applyBC(absorb)
+		call assignMatrix(absorb%a(1),absorb%m,absorb%p(1)%xp)
+		call adjustGrid(absorb)
+		print *, 'xp = ',absorb%p(1)%xp,', gL = ',absorb%a(1)%g(1,1),', gR = ',absorb%a(1)%g(1,2),	&
+			', fL = ',absorb%a(1)%frac(1,1),', fR = ',absorb%a(1)%frac(1,2)
+
+		call destroyRecord(r)
+		call destroyPM1D(absorb)
+	end subroutine
 
 	subroutine test_twostream
 		type(PM1D) :: twostream
