@@ -28,9 +28,15 @@ contains
 	subroutine destroyAssign(this)
 		type(pmAssign), intent(inout) :: this
 
-		deallocate(this%g)
-		deallocate(this%frac)
-		deallocate(this%h)
+		if( allocated(this%g) ) then
+			deallocate(this%g)
+		end if
+		if( allocated(this%frac) ) then
+			deallocate(this%frac)
+		end if
+		if( allocated(this%h) ) then
+			deallocate(this%h)
+		end if
 	end subroutine
 
 	subroutine assignMatrix(this,m,xp)
