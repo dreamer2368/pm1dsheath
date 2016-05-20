@@ -6,16 +6,6 @@ module init
 
 contains
 
-	function randn(N) result(x)
-		integer, intent(in) :: N
-		real(mp) :: x(N)
-		integer :: i
-
-		do i = 1,N
-			x(i) = random_normal()
-		end do
-	end function
-
 	subroutine twostream_initialize(this,Np,v0,vT,mode)		!generate initial distribution
 		type(PM1D), intent(inout) :: this
 		integer, intent(in) :: Np, mode
