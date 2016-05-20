@@ -43,12 +43,13 @@ contains
 		real(mp), intent(in) :: Te, Ti, Kb
 		real(mp) :: Vth_e, Vth_i
 		real(mp) :: xpe(Ne), vpe(Ne), xpi(Ni), vpi(Ni)
-		integer :: i,nseed
+		integer :: i,nseed,clock
 		integer, allocatable :: seed(:)
 
 		call RANDOM_SEED(size=nseed)
 		allocate(seed(nseed))
-		seed = (/ ( i, i=1,nseed ) /)
+		call SYSTEM_CLOCK(COUNT=clock)
+		seed = clock + 127*(/ ( i, i=1,nseed ) /)
 		call RANDOM_SEED(put=seed)
 		call RANDOM_NUMBER(xpe)
 		call RANDOM_NUMBER(xpi)
