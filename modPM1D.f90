@@ -9,7 +9,7 @@ module modPM1D
 	type PM1D
 		integer :: nt, ni, n, ng, BCindex
 		real(mp) :: eps0, wp
-		real(mp) :: dt, A0, B0, L
+		real(mp) :: dt, A0, B0, C0, L
 
 		type(species), allocatable :: p(:)
 		type(mesh) :: m
@@ -18,11 +18,11 @@ module modPM1D
 
 contains
 
-	subroutine buildPM1D(this,Tf,Ti,Ng,N,BC,order,dt,L,A,B,eps)
+	subroutine buildPM1D(this,Tf,Ti,Ng,N,BC,order,dt,L,A,B,C,eps)
 		type(PM1D), intent(out) :: this
 		real(mp), intent(in) :: Tf,Ti
 		integer, intent(in) :: Ng, N, BC, order
-		real(mp), intent(in), optional :: dt, A, B, L, eps
+		real(mp), intent(in), optional :: dt, A, B, C, L, eps
 		real(mp) :: L0
 		integer :: i
 		if( present(dt) ) then
@@ -39,6 +39,11 @@ contains
 			this%B0 = B
 		else
 			this%B0 = 0.0_mp
+		end if
+		if( present(C) ) then
+			this%C0 = C
+		else
+			this%C0 = 0.0_mp
 		end if
 		if( present(L) ) then
 			this%L = L
