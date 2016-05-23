@@ -81,7 +81,11 @@ contains
 		if( (mod(k,this%mod).eq.1) .or. (this%mod.eq.1) ) then
 			do n=1,pm%n
 				write(nstr,*) n
-				write(kstr,*) k/this%mod + 1
+				if( this%mod .eq. 1 ) then
+					write(kstr,*) k
+				else
+					write(kstr,*) k/this%mod + 1
+				end if
 				open(unit=305,file='data/'//this%dir//'/xp/'//trim(adjustl(kstr))//'_'	&
 					//trim(adjustl(nstr))//'.bin',status='replace',form='unformatted',access='stream')
 				open(unit=306,file='data/'//this%dir//'/vp/'//trim(adjustl(kstr))//'_'	&
