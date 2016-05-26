@@ -17,6 +17,7 @@ program main
 	call test_refluxing_boundary
 !	call test_source
 !	call Procassini
+!	call test_randn
 
 	! print to screen
 	print *, 'program main...done.'
@@ -235,6 +236,32 @@ contains
 
 		call destroyRecord(r)
 		call destroyPM1D(twostream)
+	end subroutine
+
+	subroutine test_randn
+		real(mp), allocatable :: test(:)
+		integer :: N = 100000
+		integer :: i,nseed,clock
+		integer, allocatable :: seed(:)
+		real(mp) :: temp(1)
+
+		call RANDOM_SEED(size=nseed)
+		allocate(seed(nseed))
+		call SYSTEM_CLOCK(COUNT=clock)
+		seed = 37*(/ ( i-1, i=1,nseed ) /)
+		call RANDOM_SEED(put=seed)
+		deallocate(seed)
+
+		allocate(test(N))
+!		test = randn(N)
+		do i=1,N
+			temp = randn(1)
+			test(i) = temp(1)
+		end do
+		open(unit=301,file='data/randn.bin',status='replace',form='unformatted',access='stream')
+		write(301) test
+		close(301)
+		deallocate(test)
 	end subroutine
 
 	subroutine test_DST
