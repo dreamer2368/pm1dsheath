@@ -1,6 +1,7 @@
 module modBC
 
 	use modPM1D
+	use random
 
 	implicit none
 
@@ -12,7 +13,7 @@ contains
 		type(PM1D), intent(inout) :: pm
 		integer :: i
 
-		select case(pm%BCindex)
+		select case(pm%pBCindex)
 			case(0)	!periodic
 				do i=1,pm%n
 					call applyBC_periodic(pm%p(i),pm%m)
@@ -21,9 +22,9 @@ contains
 				do i=1,pm%n
 					call applyBC_absorbing(pm%p(i),pm%m)
 				end do
-			case(2) !absorbing-absorbing
+			case(2) !refluxing-absorbing
 				do i=1,pm%n
-					call applyBC_absorbing(pm%p(i),pm%m)
+					call applyBC_refluxing_absorbing(pm%p(i),pm%m,pm%A0(i))
 				end do
 		end select
 	end subroutine
@@ -92,22 +93,75 @@ contains
 		deallocate(vec)
 	end subroutine
 
+	subroutine applyBC_refluxing_absorbing(p,m,vT)			!refluxing at the left plane, absorbing at the right plane
+		type(species), intent(inout) :: p
+		type(mesh), intent(inout) :: m
+		real(mp), intent(in) :: vT
+		real(mp) :: temp(1)
+		integer :: i, np1
+		real(mp), allocatable :: vec(:)
+
+		!apply refluxing BC
+		do i=1,p%np
+			if( p%xp(i).le.0.0_mp ) then
+				p%xp(i) = -p%xp(i)
+				temp = vT*randn(1)
+				p%vp(i) = temp(1)
+			end if
+		end do
+
+		np1 = p%np
+		i = 1
+		!apply absorbing BC
+		do while( i .le. np1 )
+			if( p%xp(i).ge.m%L ) then
+				p%xp(i) = p%xp(np1)
+				p%vp(i) = p%vp(np1)
+				p%Ep(i) = p%Ep(np1)
+				m%rho_back(m%ng) = m%rho_back(m%ng) + p%spwt*p%qs
+				np1 = np1-1
+				i = i-1
+			end if
+			i = i+1
+		end do
+		p%np = np1
+
+		allocate(vec(np1))
+
+		vec = p%xp(1:np1)
+		deallocate(p%xp)
+		allocate(p%xp(np1))
+		p%xp = vec
+
+		vec = p%vp(1:np1)
+		deallocate(p%vp)
+		allocate(p%vp(np1))
+		p%vp = vec
+
+		vec = p%Ep(1:np1)
+		deallocate(p%Ep)
+		allocate(p%Ep(np1))
+		p%Ep = vec
+
+		deallocate(vec)
+	end subroutine
+
 !===========================grid adjustment for BC=============================
 
 	subroutine adjustGrid(pm)
 		type(PM1D), intent(inout) :: pm
 		integer :: i
 
-		select case(pm%BCindex)
+		select case(pm%mBCindex)
 			case(0)	!periodic
 				do i=1,pm%n
 					call adjustGrid_periodic(pm%a(i))
 				end do
-			case(1)	!absorbing
+			case(1)	!Dirichlet-Dirichlet
 				do i=1,pm%n
 					call adjustGrid_absorbing(pm%a(i),pm%p(i))
 				end do
-			case(2)	!absorbing
+			case(2)	!Dirichlet-Neumann
 				do i=1,pm%n
 					call adjustGrid_absorbing(pm%a(i),pm%p(i))
 				end do
