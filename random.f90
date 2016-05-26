@@ -8,16 +8,7 @@ contains
 
 	function randn(N) result(x)
 		integer, intent(in) :: N
-		integer :: i,nseed,clock
-		integer, allocatable :: seed(:)
 		real(mp) :: r1(N), r2(N), x(N)
-
-		call RANDOM_SEED(size=nseed)
-		allocate(seed(nseed))
-		call SYSTEM_CLOCK(COUNT=clock)
-		seed = clock + 37*(/ ( i-1, i=1,nseed ) /)
-		call RANDOM_SEED(put=seed)
-		deallocate(seed)
 
 		call RANDOM_NUMBER(r1)
 		call RANDOM_NUMBER(r2)
@@ -26,16 +17,7 @@ contains
 
 	function randr(N) result(x)
 		integer, intent(in) :: N
-		integer :: i,nseed,clock
-		integer, allocatable :: seed(:)
 		real(mp) :: r1(N/2), r2(N-N/2), x(N)
-
-		call RANDOM_SEED(size=nseed)
-		allocate(seed(nseed))
-		call SYSTEM_CLOCK(COUNT=clock)
-		seed = clock + 37*(/ ( i-1, i=1,nseed ) /)
-		call RANDOM_SEED(put=seed)
-		deallocate(seed)
 
 		call RANDOM_NUMBER(r1)
 		call RANDOM_NUMBER(r2)

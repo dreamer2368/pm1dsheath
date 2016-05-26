@@ -18,21 +18,12 @@ contains
 	!Keep A(4) number of ion
 	subroutine PartialUniform_Rayleigh(pm)
 		type(PM1D), intent(inout) :: pm
-		integer :: i,nseed,clock
-		integer, allocatable :: seed(:)
-		integer :: Nadd, newN
+		integer :: Nadd, newN, i
 		real(mp), allocatable :: xp_add(:), vp_add(:,:), temp_x(:), temp_v(:)
 
 		Nadd = floor(pm%A0(4)-pm%p(2)%np)
 		allocate(xp_add(Nadd))
 		allocate(vp_add(2,Nadd))
-
-		call RANDOM_SEED(size=nseed)
-		allocate(seed(nseed))
-		call SYSTEM_CLOCK(COUNT=clock)
-		seed = clock + 59*(/ ( i-1, i=1,nseed ) /)
-		call RANDOM_SEED(put=seed)
-		deallocate(seed)
 
 		call RANDOM_NUMBER(xp_add)
 		xp_add = xp_add*2.0_mp*pm%A0(1)*pm%L + (0.5_mp - pm%A0(1))*pm%L
@@ -61,21 +52,12 @@ contains
 	!Keep A(4) number of ion
 	subroutine PartialUniform_Rayleigh2(pm)
 		type(PM1D), intent(inout) :: pm
-		integer :: i,nseed,clock
-		integer, allocatable :: seed(:)
-		integer :: Nadd, newN
+		integer :: Nadd, newN, i
 		real(mp), allocatable :: xp_add(:), vp_add(:,:), temp_x(:), temp_v(:)
 
 		Nadd = floor(pm%A0(4)-pm%p(2)%np)
 		allocate(xp_add(Nadd))
 		allocate(vp_add(2,Nadd))
-
-		call RANDOM_SEED(size=nseed)
-		allocate(seed(nseed))
-		call SYSTEM_CLOCK(COUNT=clock)
-		seed = clock + 59*(/ ( i-1, i=1,nseed ) /)
-		call RANDOM_SEED(put=seed)
-		deallocate(seed)
 
 		call RANDOM_NUMBER(xp_add)
 		xp_add = xp_add*pm%A0(3)*pm%L
@@ -104,21 +86,12 @@ contains
 	!Keep A(4) number of ion
 	subroutine PartialUniform_Maxwellian(pm)
 		type(PM1D), intent(inout) :: pm
-		integer :: i,nseed,clock
-		integer, allocatable :: seed(:)
-		integer :: Nadd, newN
+		integer :: Nadd, newN, i
 		real(mp), allocatable :: xp_add(:), vp_add(:,:), temp_x(:), temp_v(:)
 
 		Nadd = floor(pm%A0(4)-pm%p(2)%np)
 		allocate(xp_add(Nadd))
 		allocate(vp_add(2,Nadd))
-
-		call RANDOM_SEED(size=nseed)
-		allocate(seed(nseed))
-		call SYSTEM_CLOCK(COUNT=clock)
-		seed = clock + 59*(/ ( i-1, i=1,nseed ) /)
-		call RANDOM_SEED(put=seed)
-		deallocate(seed)
 
 		call RANDOM_NUMBER(xp_add)
 		xp_add = xp_add*2.0_mp*pm%A0(1)*pm%L + (0.5_mp - pm%A0(1))*pm%L
@@ -147,21 +120,12 @@ contains
 	!Keep A(4) number of ion
 	subroutine PartialUniform_Maxwellian2(pm)
 		type(PM1D), intent(inout) :: pm
-		integer :: i,nseed,clock
-		integer, allocatable :: seed(:)
-		integer :: Nadd, newN
+		integer :: Nadd, newN, i
 		real(mp), allocatable :: xp_add(:), vp_add(:,:), temp_x(:), temp_v(:)
 
 		Nadd = floor(pm%A0(4)-pm%p(2)%np)
 		allocate(xp_add(Nadd))
 		allocate(vp_add(2,Nadd))
-
-		call RANDOM_SEED(size=nseed)
-		allocate(seed(nseed))
-		call SYSTEM_CLOCK(COUNT=clock)
-		seed = clock + 59*(/ ( i-1, i=1,nseed ) /)
-		call RANDOM_SEED(put=seed)
-		deallocate(seed)
 
 		call RANDOM_NUMBER(xp_add)
 		xp_add = xp_add*pm%A0(3)*pm%L

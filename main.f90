@@ -12,8 +12,11 @@ program main
 !	call testforward(64,5000,1,0.2_mp,20.0_mp,60.0_mp)
 !	call test_DST
 !	call test_Poisson_DN
-	call test_twostream
+!	call test_twostream
 !	call test_absorbing_boundary
+	call test_refluxing_boundary
+!	call test_source
+!	call Procassini
 
 	! print to screen
 	print *, 'program main...done.'
@@ -21,6 +24,118 @@ program main
 contains
 
 	! You can add custom subroutines/functions here later, if you want
+
+	subroutine Procassini
+		type(PM1D) :: sheath
+		type(recordData) :: r
+		real(mp), parameter :: Kb = 1.38065E-23, EV_TO_K = 11604.52_mp, eps = 8.85418782E-12
+		real(mp), parameter :: Te = 50.0_mp*EV_TO_K, tau = 1.0_mp
+		real(mp), parameter :: me = 9.10938215E-31, qe = 1.602176565E-19, mu = 100
+		real(mp), parameter :: n0 = 2.00000000E14
+		integer, parameter :: Ne = 80000, Ni = 80000
+		real(mp) :: mi, Ti, wp0, lambda0, dt, dx, L
+		real(mp) :: ve0, vi0, Time_f
+		real(mp) :: A(4)
+		integer :: i
+
+		mi = mu*me
+		Ti = Te/tau
+		wp0 = sqrt(n0*qe*qe/me/eps)
+		lambda0 = sqrt(eps*Kb*Te/n0/qe/qe)
+		L = 5.0_mp*lambda0
+
+		print *, 'L = ',L,', lambda0 = ',lambda0,' e = lambda/L = ',lambda0/L
+
+!		dt = 0.1_mp/wp0
+		dx = 0.1_mp*lambda0
+		dt = 0.5_mp*dx/(lambda0*wp0)
+
+		ve0 = sqrt(Kb*Te/me)
+		vi0 = sqrt(Kb*Ti/mi)
+		Time_f = 1.0_mp*L/vi0
+
+		A = (/ ve0, vi0, 0.2_mp, 1.0_mp*Ni /)
+		do i=1,2
+			call buildPM1D(sheath,Time_f,0.0_mp,ceiling(L/dx),2,pBC=2,mBC=2,order=1,A=A,L=L,dt=dt,eps=eps)
+			sheath%wp = wp0
+			if( i.eq.1 ) then
+				call buildRecord(r,sheath%nt,2,sheath%L,sheath%ng,'Procassini_8',20)
+			else
+				call buildRecord(r,sheath%nt,2,sheath%L,sheath%ng,'Procassini_9',20)
+			end if
+
+			call buildSpecies(sheath%p(1),-qe,me,n0*L/Ne)
+			call buildSpecies(sheath%p(2),qe,mi,n0*L/Ni)
+
+			call sheath_initialize(sheath,Ne,Ni,Te,Ti,Kb)
+			if( i.eq.1 ) then
+				call forwardsweep(sheath,r,Null_input,PartialUniform_Maxwellian2)
+			else
+				call forwardsweep(sheath,r,Null_input,PartialUniform_Rayleigh2)
+			end if
+
+			call printPlasma(r)
+
+			call destroyRecord(r)
+			call destroyPM1D(sheath)
+		end do
+	end subroutine
+
+	subroutine test_source
+		type(PM1D) :: source
+		type(recordData) :: r
+		integer :: i, N=1
+		real(mp) :: rho_back(64)
+
+		call buildPM1D(source,2.0_mp,4.0_mp,64,2,pBC=1,mBC=2,order=1,A=(/0.1_mp, 0.1_mp, 1.0_mp, 10000.0_mp /))
+		call buildRecord(r,source%nt,1,source%L,64,'test_source',1)
+
+		call buildSpecies(source%p(1),1.0_mp,1.0_mp,1.0_mp)
+		call buildSpecies(source%p(1),-1.0_mp,1.0_mp,1.0_mp)
+		call setSpecies(source%p(1),1,0.5_mp*source%L*(/ 1.0_mp /),0.0_mp*(/ 1.0_mp /))
+		call setSpecies(source%p(2),1,0.5_mp*source%L*(/ 1.0_mp /),0.0_mp*(/ 1.0_mp /))
+		do i=1,N
+			call PartialUniform_Rayleigh(source)
+		end do
+
+		rho_back = 0.0_mp
+		call setMesh(source%m,rho_back)
+
+		call recordPlasma(r,source,1)
+		call printPlasma(r)
+
+		call destroyRecord(r)
+		call destroyPM1D(source)
+	end subroutine
+
+	subroutine test_refluxing_boundary
+		type(PM1D) :: reflux
+		type(recordData) :: r
+		integer, parameter :: Ng=64, N=10000, order=1
+		real(mp) :: Ti=20, Tf = 40
+		real(mp) :: xp0(N), vp0(N), rho_back(Ng), qe, me
+		integer :: i
+
+		call buildPM1D(reflux,Tf,Ti,Ng,1,pBC=2,mBC=2,order=order,A=(/ 1.0_mp, 1.0_mp /))
+		call buildRecord(r,reflux%nt,1,reflux%L,Ng,'test_reflux',1)
+
+		xp0 = -0.5_mp*reflux%L
+		vp0 = 0.0_mp
+		rho_back = 0.0_mp
+		qe = -(0.1_mp)**2/(N/reflux%L)
+		me = -qe
+		rho_back(Ng) = -qe
+		call buildSpecies(reflux%p(1),qe,me,1.0_mp)
+		call setSpecies(reflux%p(1),N,xp0,vp0)
+		call setMesh(reflux%m,rho_back)
+
+		call applyBC(reflux)
+		call recordPlasma(r,reflux,1)
+		call printPlasma(r)
+
+		call destroyRecord(r)
+		call destroyPM1D(reflux)
+	end subroutine
 
 	subroutine test_absorbing_boundary
 		type(PM1D) :: absorb
@@ -30,7 +145,7 @@ contains
 		real(mp) :: xp0(N), vp0(N), rho_back(Ng), qe, me
 		integer :: i
 
-		call buildPM1D(absorb,Tf,Ti,Ng,1,2,order)
+		call buildPM1D(absorb,Tf,Ti,Ng,1,pBC=1,mBC=2,order=order)
 		call buildRecord(r,absorb%nt,1,absorb%L,Ng,'test_absorb',1)
 
 		xp0(1) = absorb%L + 0.4_mp*absorb%m%dx
@@ -59,12 +174,12 @@ contains
 		integer :: Ng=64, Ne=10000, order=1
 		real(mp) :: Ti=40,Tf=80
 
-		call buildPM1D(twostream,Tf,Ti,Ng,1,0,order)
-		call buildRecord(r,twostream%nt,1,twostream%L,Ng,'twostream1D',5)
+		call buildPM1D(twostream,Tf,Ti,Ng,1,pBC=0,mBC=0,order=order,dt=0.2_mp)
+		call buildRecord(r,twostream%nt,1,twostream%L,Ng,'twostream1D',1)
 
 		call twostream_initialize(twostream,Ne,0.2_mp,0.0_mp,1)
 
-		call forwardsweep(twostream,r,Null_input)
+		call forwardsweep(twostream,r,Null_input,Null_source)
 
 		call printPlasma(r)
 
@@ -84,7 +199,7 @@ contains
 		real(mp) :: AMU = 1.660538921E-27
 		real(mp) :: L = 0.04_mp, spwt
 
-		call buildPM1D(sheath,Tf,Time_i,Ng,2,1,order,dt=dt,L=L,eps=eps)
+		call buildPM1D(sheath,Tf,Time_i,Ng,2,pBC=1,mBC=1,order=order,dt=dt,L=L,eps=eps)
 		call buildRecord(r,sheath%nt,2,sheath%L,Ng,'sheath1D',25)
 
 		spwt = n0*L/Ne
@@ -94,7 +209,7 @@ contains
 
 		call sheath_initialize(sheath,Ne,Ni,Te*EV_TO_K,Ti*EV_TO_K,Kb)
 
-		call forwardsweep(sheath,r,Null_input)
+		call forwardsweep(sheath,r,Null_input,Null_source)
 
 		call printPlasma(r)
 
@@ -109,12 +224,12 @@ contains
 		real(mp), intent(in) :: dt,Ti,Tf
 		integer :: N=2
 
-		call buildPM1D(twostream,Tf,Ti,Ng,N,0,order)
+		call buildPM1D(twostream,Tf,Ti,Ng,N,pBC=0,mBC=0,order=order,A=(/1.0_mp,0.0_mp/))
 		call buildRecord(r,twostream%nt,N,twostream%L,Ng,'species_test',1)
 
 		call twostream_initialize(twostream,Np,0.2_mp,0.0_mp,1)
 
-		call forwardsweep(twostream,r,IC_wave)
+		call forwardsweep(twostream,r,IC_wave,Null_source)
 
 		call printPlasma(r)
 
