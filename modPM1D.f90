@@ -7,7 +7,7 @@ module modPM1D
 	implicit none
 
 	type PM1D
-		integer :: nt, ni, n, ng, BCindex
+		integer :: nt, ni, n, ng, pBCindex, mBCindex
 		real(mp) :: eps0, wp
 		real(mp) :: dt, L
 		real(mp), allocatable :: A0(:)
@@ -19,10 +19,10 @@ module modPM1D
 
 contains
 
-	subroutine buildPM1D(this,Tf,Ti,Ng,N,BC,order,dt,L,A,eps)
+	subroutine buildPM1D(this,Tf,Ti,Ng,N,pBC,mBC,order,dt,L,A,eps)
 		type(PM1D), intent(out) :: this
 		real(mp), intent(in) :: Tf,Ti
-		integer, intent(in) :: Ng, N, BC, order
+		integer, intent(in) :: Ng, N, pBC, mBC, order
 		real(mp), intent(in), optional :: dt, A(:), L, eps
 		real(mp) :: L0
 		integer :: i
@@ -50,20 +50,22 @@ contains
 		end if
 		this%n = N
 		this%ng = Ng
-		this%BCindex = BC
+		this%pBCindex = pBC
+		this%mBCindex = mBC
 		this%nt = CEILING(Tf/this%dt)
 		this%dt = Tf/this%nt
 		this%ni = FLOOR(Ti/this%dt) + 1
 		print *, 'Plasma is created'
 		print *, 'L = (',this%L,')'
 		print *, 'Ng = (',this%ng,'), N = ',this%n
-		print *, 'BC : ', this%BCindex
+		print *, 'Particle BC : ', this%pBCindex
+		print *, 'Mesh BC : ', this%mBCindex
 		print *, 'A = ',this%A0
 		print *, 'Ni = ',this%ni,', Nt = ',this%nt,', dt = ',this%dt
 
 		this%wp = 1.0_mp
 		allocate(this%p(N))
-		call buildMesh(this%m,this%L,Ng,this%BCindex)
+		call buildMesh(this%m,this%L,Ng,this%mBCindex)
 		allocate(this%a(N))
 		do i=1,N
 			call buildAssign(this%a(i),Ng,order)
