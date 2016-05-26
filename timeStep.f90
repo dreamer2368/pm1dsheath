@@ -1,5 +1,6 @@
 module timeStep
 
+	use modSource
 	use modTarget
 	use modBC
 	use modRecord
@@ -8,23 +9,29 @@ module timeStep
 
 contains
 
-	subroutine forwardsweep(this,r,source)
+	subroutine forwardsweep(this,r,target_input,source)
 		type(PM1D), intent(inout) :: this
 		type(recordData), intent(inout) :: r
 		integer :: k
 		interface
-			subroutine source(pm,k,str)
+			subroutine target_input(pm,k,str)
 				use modPM1D
 				type(PM1D), intent(inout) :: pm
 				integer, intent(in) :: k
 				character(len=*), intent(in) :: str
 			end subroutine
 		end interface
+		interface
+			subroutine source(pm)
+				use modPM1D
+				type(PM1D), intent(inout) :: pm
+			end subroutine
+		end interface
 
 		!Time stepping
 		call halfStep(this)
 		do k=1,this%nt
-			call updatePlasma(this,r,source,k)
+			call updatePlasma(this,r,target_input,source,k)
 		end do
 	end subroutine
 
@@ -65,29 +72,36 @@ contains
 		end do
 	end subroutine
 
-	subroutine updatePlasma(this,r,source,k)
+	subroutine updatePlasma(this,r,target_input,source,k)
 		type(PM1D), intent(inout) :: this
 		type(recordData), intent(inout) :: r
 		integer, intent(in) :: k
 		real(mp) :: rhs(this%ng-1), phi1(this%ng-1)
-		real(mp) :: dt, L, B
+		real(mp) :: dt, L
 		integer :: N, Ng, i
 		interface
-			subroutine source(pm,k,str)
+			subroutine target_input(pm,k,str)
 				use modPM1D
 				type(PM1D), intent(inout) :: pm
 				integer, intent(in) :: k
 				character(len=*), intent(in) :: str
 			end subroutine
 		end interface
+		interface
+			subroutine source(pm)
+				use modPM1D
+				type(PM1D), intent(inout) :: pm
+			end subroutine
+		end interface
 		dt = this%dt
 		L = this%L
 		N = this%n
-		B = this%B0
 		Ng = this%ng
 		call recordPlasma(r, this, k)									!record for n=0~(Nt-1)
 
-		call source(this,k,'xp')
+		call target_input(this,k,'xp')
+
+		call source(this)
 
 		do i=1,this%n
 			call moveSpecies(this%p(i),dt)
