@@ -24,7 +24,7 @@ contains
 				end do
 			case(2) !refluxing-absorbing
 				do i=1,pm%n
-					call applyBC_refluxing_absorbing(pm%p(i),pm%m,pm%A0(i))
+					call applyBC_refluxing_absorbing(pm%p(i),pm%m,pm%dt,pm%A0(i))
 				end do
 		end select
 	end subroutine
@@ -93,10 +93,10 @@ contains
 		deallocate(vec)
 	end subroutine
 
-	subroutine applyBC_refluxing_absorbing(p,m,vT)			!refluxing at the left plane, absorbing at the right plane
+	subroutine applyBC_refluxing_absorbing(p,m,dt,vT)			!refluxing at the left plane, absorbing at the right plane
 		type(species), intent(inout) :: p
 		type(mesh), intent(inout) :: m
-		real(mp), intent(in) :: vT
+		real(mp), intent(in) :: dt, vT
 		real(mp) :: temp(1)
 		integer :: i, np1
 		real(mp), allocatable :: vec(:)
@@ -104,9 +104,10 @@ contains
 		!apply refluxing BC
 		do i=1,p%np
 			if( p%xp(i).le.0.0_mp ) then
-				p%xp(i) = -p%xp(i)
-				temp = vT*randn(1)
+				temp = abs(vT*randn(1))
 				p%vp(i) = temp(1)
+				call RANDOM_NUMBER(temp)
+				p%xp(i) = temp(1)*dt*p%vp(i)
 			end if
 		end do
 
