@@ -60,6 +60,7 @@ contains
 		type(recordData), intent(inout) :: this
 		integer :: i,j
 
+		deallocate(this%np)
 		deallocate(this%phidata)
 		deallocate(this%Edata)
 		deallocate(this%rhodata)
@@ -78,7 +79,7 @@ contains
 		character(len=100) :: nstr, kstr
 		real(mp) :: qe = 1.602176565E-19
 
-		if( (mod(k,this%mod).eq.1) .or. (this%mod.eq.1) ) then
+		if( (this%mod.eq.1) .or. (mod(k,this%mod).eq.1) ) then
 			do n=1,pm%n
 				write(nstr,*) n
 				if( this%mod .eq. 1 ) then
@@ -90,13 +91,10 @@ contains
 					//trim(adjustl(nstr))//'.bin',status='replace',form='unformatted',access='stream')
 				open(unit=306,file='data/'//this%dir//'/vp/'//trim(adjustl(kstr))//'_'	&
 					//trim(adjustl(nstr))//'.bin',status='replace',form='unformatted',access='stream')
-
 				write(305) pm%p(n)%xp
 				write(306) pm%p(n)%vp
-
 				close(305)
 				close(306)
-
 				this%np(n,k/this%mod+1) = pm%p(n)%np
 				this%KE(n,k/this%mod+1) = 0.5_mp*SUM(pm%p(n)%ms*pm%p(n)%spwt*(pm%p(n)%vp**2))
 			end do
@@ -105,7 +103,6 @@ contains
 			this%Edata(:,k/this%mod+1) = pm%m%E
 			this%rhodata(:,k/this%mod+1) = pm%m%rho
 			this%PE(k/this%mod+1) = 0.5_mp*SUM(pm%m%E**2)*pm%m%dx
-
 			print *, '============= ',k,'-th Time Step ================='
 			do n=1,pm%n
 				print *, 'Species(',n,'): ',pm%p(n)%np, ', KE: ', 0.5_mp*pm%p(n)%ms*sum((pm%p(n)%vp)**2)
