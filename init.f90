@@ -51,6 +51,7 @@ contains
 		call SYSTEM_CLOCK(COUNT=clock)
 		seed = clock + 127*(/ ( i, i=1,nseed ) /)
 		call RANDOM_SEED(put=seed)
+		deallocate(seed)
 		call RANDOM_NUMBER(xpe)
 		call RANDOM_NUMBER(xpi)
 		xpe = xpe*this%L

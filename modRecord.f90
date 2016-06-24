@@ -96,7 +96,7 @@ contains
 				close(305)
 				close(306)
 				this%np(n,k/this%mod+1) = pm%p(n)%np
-				this%KE(n,k/this%mod+1) = 0.5_mp*SUM(pm%p(n)%ms*pm%p(n)%spwt*(pm%p(n)%vp**2))
+				this%KE(n,k/this%mod+1) = 0.5_mp*SUM(pm%p(n)%ms*pm%p(n)%spwt*sum(pm%p(n)%vp**2))
 			end do
 
 			this%phidata(:,k/this%mod+1) = pm%m%phi

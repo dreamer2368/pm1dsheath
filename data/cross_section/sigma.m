@@ -18,6 +18,10 @@ energy = fread(fileID,N,'double');
 
 %%
 close all
+qe = 1.602e-19; me = 9.10938356e-31; mAr = 6.6335209e-26;
+
+max_sigmav_e = max( (sig1+sig2+sig3).*sqrt(2*qe*energy/me) )
+max_sigmav_Ar = max( (sig4+sig5).*sqrt(2*qe*energy/mAr) )
 
 figure(1)
 loglog(energy,sig1*10^(20),'linewidth',2);
