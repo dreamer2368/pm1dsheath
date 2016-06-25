@@ -16,9 +16,9 @@ program main
 !	call test_absorbing_boundary
 !	call test_refluxing_boundary
 !	call test_source
-!	call Procassini
+	call Procassini
 !	call test_randn
-	call cross_section
+!	call cross_section
 
 	! print to screen
 	print *, 'program main...done.'
